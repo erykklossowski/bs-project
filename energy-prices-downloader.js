@@ -61,6 +61,13 @@ async function makeProxyRequest(apiPath) {
             reject(new Error(`Request failed: ${error.message}`));
         });
 
+        // Set timeout for the request (30 seconds)
+        req.on('timeout', () => {
+            req.destroy();
+            reject(new Error('Request timeout: PSE API took too long to respond'));
+        });
+        req.setTimeout(30000); // 30 second timeout
+
         req.end();
     });
 }

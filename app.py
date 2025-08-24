@@ -47,7 +47,7 @@ async def fetch_pse_data(start_date: str, end_date: str):
         fetch_status = {"status": "fetching", "progress": 30, "message": "Downloading energy prices from PSE API..."}
         result = subprocess.run([
             'node', 'energy-prices-downloader.js'
-        ], cwd=Path.cwd(), capture_output=True, text=True, env=env, timeout=300)
+        ], cwd=Path.cwd(), capture_output=True, text=True, env=env, timeout=1800)
         
         if result.returncode != 0:
             print(f"JavaScript downloader failed: {result.stderr}")
@@ -67,7 +67,7 @@ async def fetch_pse_data(start_date: str, end_date: str):
         fetch_status = {"status": "fetching", "progress": 50, "message": "Downloading aFRR-specific data..."}
         result = subprocess.run([
             'bash', 'fetch_pse_data.sh'
-        ], cwd=Path.cwd(), capture_output=True, text=True, env=env, timeout=300)
+        ], cwd=Path.cwd(), capture_output=True, text=True, env=env, timeout=1800)
         
         if result.returncode != 0:
             print(f"Warning: Direct aFRR fetch failed: {result.stderr}")
@@ -266,16 +266,16 @@ async def run_data_fetch(start_date: str, end_date: str):
             'node', 'energy-prices-downloader.js'
         ], cwd=Path.cwd(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
         
-        # Monitor the process for up to 15 minutes
+        # Monitor the process for up to 30 minutes (longer timeout for Render)
         import time
         start_time = time.time()
-        timeout = 900  # 15 minutes
+        timeout = 1800  # 30 minutes
         
         while process.poll() is None:
             elapsed = time.time() - start_time
             if elapsed > timeout:
                 process.terminate()
-                fetch_status = {"status": "error", "progress": 0, "message": "Download timed out after 15 minutes"}
+                fetch_status = {"status": "error", "progress": 0, "message": f"Download timed out after {timeout//60} minutes. Try a shorter date range or check PSE API status."}
                 return
             
             # Update progress based on elapsed time (rough estimate)
