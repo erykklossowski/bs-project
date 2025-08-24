@@ -1,0 +1,39 @@
+{
+  "capacity_perMW_baseline_PLN": 23431.170032117123,
+  "capacity_perMW_capped_PLN": 22120.42673333752,
+  "portfolio_baseline_PLN": 1171558.5016058562,
+  "portfolio_capped_PLN": 1106021.336666876,
+  "bound_intervals_pct": 15.10365251727542,
+  "model_mode": "parametric",
+  "model_params": {
+    "beta_mu": "[ 6.34594524e+00  2.27311036e-03  5.13577461e-04 -2.64838844e-03\n -2.28749245e-03]",
+    "sigma": 0.9071464567583156,
+    "mu_t_series": "[5.24821689 4.94283555 4.94289811 ... 6.34594524 6.34594524 6.34594524]",
+    "used_cols": [
+      "intercept",
+      "CEN",
+      "COR",
+      "CSDAC",
+      "CEB_SR"
+    ],
+    "model_mode": "parametric"
+  },
+  "acceptance_stats": [
+    {
+      "band": 1,
+      "fraction": 1.0,
+      "bid_K": 300.0,
+      "avg_acceptance_prob": 0.30840631829045245,
+      "expected_MWh": 3905.195005352854
+    }
+  ],
+  "portfolio_mw": 50.0,
+  "bids": [
+    [
+      1.0,
+      300.0
+    ]
+  ],
+  "total_intervals": 1013,
+  "bound_intervals": "153"
+}
