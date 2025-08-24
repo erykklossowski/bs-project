@@ -35,7 +35,7 @@ async def fetch_pse_data(start_date: str, end_date: str):
         # Create output directories
         os.makedirs('pse_data_js', exist_ok=True)
         os.makedirs('pse_raw_auto', exist_ok=True)
-        os.makedirs('pse_processed_auto', exist_ok=True)
+        os.makedirs('pse_data_js', exist_ok=True)
         
         # Set environment variables for the Node.js script
         env = os.environ.copy()
@@ -110,16 +110,40 @@ async def run_data_fetch(start_date: str, end_date: str):
         env = os.environ.copy()
         env['NODE_PATH'] = env.get('NODE_PATH', '/usr/local/lib/node_modules')
         
-        # Run the JavaScript downloader
-        fetch_status = {"status": "fetching", "progress": 50, "message": "Downloading PSE data via JavaScript..."}
+        # Run the JavaScript downloader with extended timeout
+        fetch_status = {"status": "fetching", "progress": 20, "message": "Downloading full year PSE data (this may take 5-10 minutes)..."}
         
-        result = subprocess.run([
+        # Start the JavaScript downloader in a way that allows us to track progress
+        import subprocess
+        process = subprocess.Popen([
             'node', 'energy-prices-downloader.js'
-        ], cwd=Path.cwd(), capture_output=True, text=True, env=env, timeout=300)
+        ], cwd=Path.cwd(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
+        
+        # Monitor the process for up to 15 minutes
+        import time
+        start_time = time.time()
+        timeout = 900  # 15 minutes
+        
+        while process.poll() is None:
+            elapsed = time.time() - start_time
+            if elapsed > timeout:
+                process.terminate()
+                fetch_status = {"status": "error", "progress": 0, "message": "Download timed out after 15 minutes"}
+                return
+            
+            # Update progress based on elapsed time (rough estimate)
+            progress = min(90, 20 + int(elapsed / timeout * 70))
+            fetch_status = {"status": "fetching", "progress": progress, "message": f"Downloading PSE data... ({int(elapsed/60)}m {int(elapsed%60)}s)"}
+            time.sleep(10)  # Update every 10 seconds
+        
+        # Get the final result
+        stdout, stderr = process.communicate()
+        result = type('obj', (object,), {'returncode': process.returncode, 'stdout': stdout, 'stderr': stderr})
         
         if result.returncode != 0:
             print(f"JavaScript downloader failed: {result.stderr}")
-            fetch_status = {"status": "error", "progress": 0, "message": "JavaScript downloader failed"}
+            print(f"JavaScript downloader stdout: {result.stdout}")
+            fetch_status = {"status": "error", "progress": 0, "message": f"JavaScript downloader failed: {result.stderr[:200]}"}
             return
         
         fetch_status = {"status": "completed", "progress": 100, "message": "Data download completed successfully!"}
@@ -702,10 +726,11 @@ async def run_two_bids_analysis(
             print(f"Energy params: K_energy={single_K_energy_safe}, pay_rule={energy_pay_rule_safe}, theta={theta_safe}")
             raise
         
-        # Check auto data availability for template
+        # Check auto data availability for template (JavaScript downloader files)
         auto_data_available = all([
-            Path("pse_processed_auto/afrr_prices.csv").exists(),
-            Path("pse_processed_auto/afrr_volumes.csv").exists()
+            Path("pse_data_js/afrr_marginal_prices.json").exists(),
+            Path("pse_data_js/afrr_volumes_mbp.json").exists(),
+            Path("pse_data_js/energy_prices.json").exists()
         ])
         
         # Clean all params to prevent Undefined objects
@@ -773,10 +798,11 @@ async def run_two_bids_analysis(
         error_msg = f"Two-bid analysis failed: {str(e)}"
         print(error_msg)  # Log to console
         
-        # Check auto data availability for template
+        # Check auto data availability for template (JavaScript downloader files)
         auto_data_available = all([
-            Path("pse_processed_auto/afrr_prices.csv").exists(),
-            Path("pse_processed_auto/afrr_volumes.csv").exists()
+            Path("pse_data_js/afrr_marginal_prices.json").exists(),
+            Path("pse_data_js/afrr_volumes_mbp.json").exists(),
+            Path("pse_data_js/energy_prices.json").exists()
         ])
         
         return templates.TemplateResponse("two_bids.html", {
@@ -793,10 +819,11 @@ async def run_two_bids_analysis(
 @app.get("/two-bids", response_class=HTMLResponse)
 async def two_bids_page(request: Request):
     """Display the two-bid analysis page."""
-    # Check if auto data exists
+    # Check if auto data exists (JavaScript downloader files)
     auto_data_available = all([
-        Path("pse_processed_auto/afrr_prices.csv").exists(),
-        Path("pse_processed_auto/afrr_volumes.csv").exists()
+        Path("pse_data_js/afrr_marginal_prices.json").exists(),
+        Path("pse_data_js/afrr_volumes_mbp.json").exists(),
+        Path("pse_data_js/energy_prices.json").exists()
     ])
     
     return templates.TemplateResponse("two_bids.html", {
