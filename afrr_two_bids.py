@@ -62,11 +62,15 @@ def infer_interval_hours(dt_index: pd.DatetimeIndex) -> float:
     return float(np.median(diffs)) if len(diffs) else 0.25
 
 def align_to_quarter(df: pd.DataFrame, dt_col: str, value_cols) -> pd.DataFrame:
-    """Align an arbitrary time series to a 15-min grid via step hold (ffill)."""
+    """Align time series to 15-min grid with proper pro-rating for price columns."""
     z = df.copy()
     z = z.dropna(subset=[dt_col])
     z[dt_col] = to_dt_utc(z[dt_col])
     z = z.sort_values(dt_col).set_index(dt_col)
+    
+    # Detect original interval frequency
+    orig_freq = pd.infer_freq(z.index)
+    is_hourly = orig_freq and ('H' in orig_freq or orig_freq == 'H')
     
     full_idx = pd.date_range(
         z.index.min().floor("15min"), 
@@ -74,11 +78,278 @@ def align_to_quarter(df: pd.DataFrame, dt_col: str, value_cols) -> pd.DataFrame:
         freq="15min", 
         tz="UTC"
     )
-    z = z.reindex(full_idx).ffill()
+    
+    # For hourly price data, pro-rate across quarters instead of duplicating
+    if is_hourly and any('price' in col.lower() or 'pln' in col.lower() for col in value_cols):
+        # Pro-rate hourly values by dividing by 4 for quarter-hour intervals
+        z_reindexed = z.reindex(full_idx)
+        for col in value_cols:
+            if col in z.columns and ('price' in col.lower() or 'pln' in col.lower()):
+                # Forward fill but divide by 4 to pro-rate hourly prices
+                z_reindexed[col] = z_reindexed[col].ffill() / 4.0
+            else:
+                # Non-price columns use regular forward fill
+                z_reindexed[col] = z_reindexed[col].ffill()
+        z = z_reindexed
+    else:
+        # Regular forward fill for non-hourly or non-price data
+        z = z.reindex(full_idx).ffill()
+    
     z.index.name = "dt"
     
     keep = [c for c in value_cols if c in z.columns]
     return z[keep].reset_index()
+
+def compute_deliverable_capacity(df: pd.DataFrame, portfolio_mw: float, capacity_factor: float = 1.0, 
+                                 seasonal_cf_variation: bool = True, availability_haircut: float = 1.0) -> pd.Series:
+    """
+    Compute deliverable down-regulation capacity for wind BSPs with seasonal patterns.
+    
+    For wind assets: deliverable_mw,t = contracted_MW × CF_seasonal,t × availability_haircut
+    For conventional: deliverable_mw,t = portfolio_mw × capacity_factor
+    
+    Args:
+        df: DataFrame with time series data (must have 'dt' column)
+        portfolio_mw: Contracted portfolio size (MW)
+        capacity_factor: Base capacity factor (e.g., 0.30 for 30% annual average)
+        seasonal_cf_variation: Enable seasonal capacity factor patterns
+        availability_haircut: Additional availability reduction factor
+    
+    Returns:
+        Series of deliverable capacity values per interval
+    """
+    n_intervals = len(df)
+    
+    if seasonal_cf_variation and 'dt' in df.columns:
+        # Apply seasonal patterns: higher CF in autumn/winter, lower in spring/summer
+        dt_series = pd.to_datetime(df['dt'])
+        months = dt_series.dt.month
+        
+        # Seasonal multipliers based on typical wind patterns in Poland
+        seasonal_multipliers = pd.Series(index=df.index, dtype=float)
+        
+        # Winter months (Dec, Jan, Feb): 1.3x higher
+        winter_mask = months.isin([12, 1, 2])
+        seasonal_multipliers.loc[winter_mask] = 1.3
+        
+        # Autumn months (Oct, Nov): 1.2x higher  
+        autumn_mask = months.isin([10, 11])
+        seasonal_multipliers.loc[autumn_mask] = 1.2
+        
+        # Spring months (Mar, Apr, May): 0.9x lower
+        spring_mask = months.isin([3, 4, 5])
+        seasonal_multipliers.loc[spring_mask] = 0.9
+        
+        # Summer months (Jun, Jul, Aug, Sep): 0.8x lower
+        summer_mask = months.isin([6, 7, 8, 9])
+        seasonal_multipliers.loc[summer_mask] = 0.8
+        
+        # Apply seasonal pattern to base capacity factor
+        seasonal_cf = capacity_factor * seasonal_multipliers
+        
+        # Ensure CF stays within reasonable bounds (5% to 80% max)
+        seasonal_cf = np.clip(seasonal_cf, 0.05, 0.80)
+        
+        deliverable_capacity = portfolio_mw * seasonal_cf * availability_haircut
+        
+    else:
+        # Static capacity factor (conventional assets or disabled seasonality)
+        deliverable_capacity = pd.Series([portfolio_mw * capacity_factor * availability_haircut] * n_intervals, index=df.index)
+    
+    # Ensure non-negative capacity
+    deliverable_capacity = np.maximum(deliverable_capacity, 0)
+    
+    return deliverable_capacity
+
+def compute_capacity_factor_uncertainty(df: pd.DataFrame, deliverable_capacity: pd.Series, 
+                                       portfolio_mw: float, method: str = "historical") -> Dict:
+    """
+    Analyze capacity factor uncertainty for risk assessment.
+    
+    Args:
+        df: DataFrame with historical data
+        deliverable_capacity: Time series of deliverable capacity
+        portfolio_mw: Contracted portfolio size
+        method: "historical" or "regime_switching"
+    
+    Returns:
+        Dictionary with capacity factor statistics and uncertainty parameters
+    """
+    # Compute time-varying capacity factors
+    capacity_factors = deliverable_capacity / portfolio_mw if portfolio_mw > 0 else pd.Series([1.0] * len(df))
+    
+    # Basic statistics
+    cf_stats = {
+        'mean_cf': float(capacity_factors.mean()),
+        'std_cf': float(capacity_factors.std()),
+        'min_cf': float(capacity_factors.min()),
+        'max_cf': float(capacity_factors.max()),
+        'percentiles': {
+            '5': float(capacity_factors.quantile(0.05)),
+            '25': float(capacity_factors.quantile(0.25)),
+            '50': float(capacity_factors.quantile(0.50)),
+            '75': float(capacity_factors.quantile(0.75)),
+            '95': float(capacity_factors.quantile(0.95))
+        }
+    }
+    
+    # Seasonal analysis if datetime column available
+    if 'dt' in df.columns:
+        df_temp = df.copy()
+        df_temp['capacity_factor'] = capacity_factors
+        df_temp['month'] = pd.to_datetime(df['dt']).dt.month
+        
+        monthly_cf = df_temp.groupby('month')['capacity_factor'].agg(['mean', 'std']).to_dict()
+        cf_stats['seasonal_patterns'] = monthly_cf
+    
+    # Regime identification for advanced modeling
+    if method == "regime_switching" and len(capacity_factors) > 100:
+        # Simplified regime detection based on capacity factor levels
+        low_regime = capacity_factors < capacity_factors.quantile(0.33)
+        high_regime = capacity_factors > capacity_factors.quantile(0.67)
+        
+        cf_stats['regime_analysis'] = {
+            'low_regime_cf': float(capacity_factors[low_regime].mean()),
+            'med_regime_cf': float(capacity_factors[~(low_regime | high_regime)].mean()),
+            'high_regime_cf': float(capacity_factors[high_regime].mean()),
+            'low_regime_prob': float(low_regime.mean()),
+            'high_regime_prob': float(high_regime.mean())
+        }
+    
+    return cf_stats
+
+def block_bootstrap_revenue_analysis(revenue_series: pd.Series, dt_series: pd.Series, 
+                                   n_simulations: int = 1000, block_size_days: int = 30) -> Dict:
+    """
+    Perform block bootstrap analysis on revenue series respecting seasonality.
+    
+    Args:
+        revenue_series: Time series of daily/interval revenues
+        dt_series: Corresponding datetime series  
+        n_simulations: Number of bootstrap simulations
+        block_size_days: Size of blocks in days for bootstrap
+    
+    Returns:
+        Dictionary with percentiles, VaR, CVaR statistics
+    """
+    if len(revenue_series) < block_size_days * 4:  # Need at least 4 blocks
+        return {"error": "Insufficient data for block bootstrap"}
+    
+    # Convert to daily if needed (aggregate by date)
+    df_temp = pd.DataFrame({'dt': pd.to_datetime(dt_series), 'revenue': revenue_series})
+    df_temp['date'] = df_temp['dt'].dt.date
+    daily_revenue = df_temp.groupby('date')['revenue'].sum()
+    
+    # Seasonal block bootstrap
+    df_daily = pd.DataFrame({'date': daily_revenue.index, 'revenue': daily_revenue.values})
+    df_daily['month'] = pd.to_datetime(df_daily['date']).dt.month
+    df_daily['day_of_year'] = pd.to_datetime(df_daily['date']).dt.dayofyear
+    
+    n_days = len(daily_revenue)
+    block_size = min(block_size_days, n_days // 4)
+    n_blocks = n_days // block_size
+    
+    annual_revenues = []
+    
+    for sim in range(n_simulations):
+        # Randomly select blocks with replacement
+        sampled_revenue = []
+        
+        for _ in range(n_blocks):
+            # Random block start
+            block_start = np.random.randint(0, n_days - block_size + 1)
+            block_revenue = daily_revenue.iloc[block_start:block_start + block_size]
+            sampled_revenue.extend(block_revenue.values)
+        
+        # Truncate to original length and compute annual total
+        sampled_revenue = sampled_revenue[:n_days]
+        annual_total = np.sum(sampled_revenue)
+        annual_revenues.append(annual_total)
+    
+    annual_revenues = np.array(annual_revenues)
+    
+    # Compute risk metrics
+    risk_metrics = {
+        'mean_annual_revenue': float(np.mean(annual_revenues)),
+        'std_annual_revenue': float(np.std(annual_revenues)),
+        'percentiles': {
+            'P5': float(np.percentile(annual_revenues, 5)),
+            'P10': float(np.percentile(annual_revenues, 10)),
+            'P25': float(np.percentile(annual_revenues, 25)),
+            'P50': float(np.percentile(annual_revenues, 50)),
+            'P75': float(np.percentile(annual_revenues, 75)),
+            'P90': float(np.percentile(annual_revenues, 90)),
+            'P95': float(np.percentile(annual_revenues, 95))
+        },
+        'var_95': float(np.percentile(annual_revenues, 5)),  # 95% VaR (5th percentile)
+        'cvar_95': float(np.mean(annual_revenues[annual_revenues <= np.percentile(annual_revenues, 5)])),  # 95% CVaR
+        'var_99': float(np.percentile(annual_revenues, 1)),  # 99% VaR
+        'cvar_99': float(np.mean(annual_revenues[annual_revenues <= np.percentile(annual_revenues, 1)])),  # 99% CVaR
+        'historical_annual': float(np.sum(daily_revenue))  # Actual historical total
+    }
+    
+    return risk_metrics
+
+def compute_state_dependent_theta(df: pd.DataFrame, pred_cols: list = None, base_theta: float = 0.01) -> pd.Series:
+    """
+    Compute state-dependent activation probability θₜ based on system state variables.
+    Higher θₜ when renewable output is high (low/negative prices), lower when tight.
+    
+    Args:
+        df: DataFrame with predictor columns and price data
+        pred_cols: List of predictor column names (e.g., ['CEN', 'COR', 'SK'])
+        base_theta: Base activation rate (default 0.01 = 1%)
+    
+    Returns:
+        Series of state-dependent theta values
+    """
+    n_intervals = len(df)
+    theta_series = pd.Series([base_theta] * n_intervals, index=df.index)
+    
+    # If no predictors available, return base theta
+    if not pred_cols or not any(col in df.columns for col in pred_cols):
+        return theta_series
+    
+    # Use price signal as primary state indicator
+    if 'price_pln_per_mw_h' in df.columns:
+        prices = df['price_pln_per_mw_h']
+        
+        # Escalate theta when prices are low/negative (high renewables scenario)
+        # Scale factor: higher activation probability when prices approach zero or go negative
+        price_factor = np.where(
+            prices <= 0,    # Negative prices: 3x higher activation
+            3.0,
+            np.where(
+                prices <= 50,   # Very low prices: 2x higher activation  
+                2.0,
+                np.where(
+                    prices <= 100,  # Low prices: 1.5x higher activation
+                    1.5,
+                    1.0  # Normal prices: base rate
+                )
+            )
+        )
+        
+        theta_series = base_theta * price_factor
+    
+    # Additional state factors from predictor columns if available
+    if pred_cols and any(col in df.columns for col in pred_cols):
+        # Look for signs of system stress/surplus in predictor patterns
+        available_preds = [col for col in pred_cols if col in df.columns]
+        
+        if available_preds:
+            # Compute rolling volatility as stress indicator
+            pred_data = df[available_preds].fillna(0)
+            volatility = pred_data.rolling(window=4, min_periods=1).std().mean(axis=1)
+            
+            # High volatility suggests system stress -> higher activation probability
+            volatility_factor = 1.0 + np.clip(volatility / 100.0, 0, 0.5)  # Cap at 1.5x
+            theta_series = theta_series * volatility_factor
+    
+    # Ensure theta stays within reasonable bounds (0.1% to 10%)
+    theta_series = np.clip(theta_series, 0.001, 0.10)
+    
+    return theta_series
 
 def normalize_price_units(df: pd.DataFrame, price_col: str, series_interval_h: float, price_unit: str) -> pd.Series:
     """Normalize price series to PLN/MW-h units."""
@@ -288,17 +559,27 @@ def compute_capacity_revenue(
     df: pd.DataFrame, 
     cap_bands: List[Tuple[float, float]], 
     p_cap_df: pd.DataFrame,
-    portfolio_mw: float
+    portfolio_mw: float,
+    capacity_factor: float = 1.0,
+    seasonal_cf_variation: bool = True,
+    availability_haircut: float = 1.0
 ) -> pd.DataFrame:
     """
     Compute expected pay-as-bid capacity revenue per interval.
-    R^cap_t = Σ v_i × K_cap_i × p_cap,t(K_cap_i) × min(Portfolio, Q^proc_t) × Δh
+    R^cap_t = Σ v_i × K_cap_i × p_cap,t(K_cap_i) × min(deliverable_mw,t, Q^proc_t) × Δh
+    where deliverable_mw,t accounts for wind capacity constraints
     """
     result = df[['dt', 'mw_procured']].copy()
     result['Hours_in_interval'] = 0.25  # Fixed 15-min intervals
     
-    # Capacity available: min(portfolio, procured)
-    result['mw_available'] = np.minimum(portfolio_mw, result['mw_procured'])
+    # Compute deliverable capacity (accounts for seasonal wind patterns)
+    deliverable_capacity = compute_deliverable_capacity(
+        df, portfolio_mw, capacity_factor, seasonal_cf_variation, availability_haircut
+    )
+    
+    # Available capacity: min(deliverable capacity, procured volume)
+    result['mw_deliverable'] = deliverable_capacity
+    result['mw_available'] = np.minimum(deliverable_capacity, result['mw_procured'])
     
     # Compute revenue for each capacity bid band
     total_revenue = np.zeros(len(result))
@@ -335,15 +616,37 @@ def compute_energy_revenue(
     K_energy: float,
     energy_payoff: pd.Series,
     theta: float,
-    portfolio_mw: float
+    portfolio_mw: float,
+    pred_cols: list = None
 ) -> pd.DataFrame:
     """
     Compute expected energy revenue per interval.
-    R^eng_t = [Σ v_i × p_cap,t(K_cap_i)] × p_eng,t(K_energy) × θ × min(Portfolio, Q^proc_t) × payoff_per_MWh × Δh
+    R^eng_t = [Σ v_i × p_cap,t(K_cap_i)] × p_eng,t(K_energy) × θₜ × min(Portfolio, Q^proc_t) × payoff_per_MWh × Δh
+    
+    Now uses state-dependent θₜ instead of fixed theta.
     """
     result = df[['dt', 'mw_procured']].copy()
     result['Hours_in_interval'] = 0.25
-    result['mw_available'] = np.minimum(portfolio_mw, result['mw_procured'])
+    
+    # Use same deliverable capacity logic as capacity revenue
+    deliverable_capacity = compute_deliverable_capacity(
+        df, portfolio_mw, capacity_factor=1.0  # Default to full capacity if not specified
+    )
+    result['mw_available'] = np.minimum(deliverable_capacity, result['mw_procured'])
+    
+    # Merge in price data for state-dependent theta calculation
+    if 'price_pln_per_mw_h' in df.columns:
+        result = result.merge(df[['dt', 'price_pln_per_mw_h']], on='dt', how='left')
+    
+    # Merge in predictor columns for state-dependent theta calculation
+    if pred_cols:
+        available_pred_cols = [col for col in pred_cols if col in df.columns]
+        if available_pred_cols:
+            merge_cols = ['dt'] + available_pred_cols
+            result = result.merge(df[merge_cols], on='dt', how='left')
+    
+    # Compute state-dependent theta values
+    theta_series = compute_state_dependent_theta(result, pred_cols, theta)
     
     # Compute overall capacity acceptance probability (weighted average)
     total_cap_prob = np.zeros(len(result))
@@ -359,11 +662,11 @@ def compute_energy_revenue(
         energy_model, result, K_energy
     )
     
-    # Energy revenue per interval
+    # Energy revenue per interval using state-dependent theta
     energy_revenue = (
         total_cap_prob *  # Must be capacity selected first
         p_energy_series.values * 
-        theta *  # Activation rate
+        theta_series.values *  # State-dependent activation rate
         result['mw_available'].values * 
         energy_payoff.values * 
         result['Hours_in_interval'].values
@@ -373,6 +676,7 @@ def compute_energy_revenue(
     result['p_cap_weighted'] = total_cap_prob
     result['p_energy'] = p_energy_series
     result['payoff_per_MWh'] = energy_payoff
+    result['theta_dynamic'] = theta_series  # Store for analysis
     
     return result
 
@@ -438,6 +742,16 @@ def value_afrr_down_two_bids(
     single_K_energy: Optional[float] = None,
     energy_pay_rule: str = "difference",
     theta: float = 0.01,
+    
+    # Wind BSP capacity constraints  
+    capacity_factor: float = 1.0,
+    seasonal_cf_variation: bool = True,
+    availability_haircut: float = 1.0,
+    
+    # Risk assessment options
+    enable_risk_assessment: bool = False,
+    bootstrap_simulations: int = 1000,
+    bootstrap_block_days: int = 30,
     
     # Options
     return_intervals: bool = True,
@@ -536,8 +850,11 @@ def value_afrr_down_two_bids(
     # 6) Compute capacity acceptance probabilities
     p_cap_df = capacity_model.compute_capacity_acceptance_probability(df, K_cap_values)
     
-    # 7) Compute capacity revenue
-    revenue_df = compute_capacity_revenue(df, cap_bands, p_cap_df, portfolio_mw)
+    # 7) Compute capacity revenue with seasonal capacity constraints
+    revenue_df = compute_capacity_revenue(
+        df, cap_bands, p_cap_df, portfolio_mw, 
+        capacity_factor, seasonal_cf_variation, availability_haircut
+    )
     
     # ---- ENERGY LEG PROCESSING ----
     energy_results = {}
@@ -563,10 +880,10 @@ def value_afrr_down_two_bids(
             df_with_energy, col_energy, single_K_energy, energy_pay_rule
         )
         
-        # Compute energy revenue
+        # Compute energy revenue with state-dependent theta
         energy_revenue_df = compute_energy_revenue(
             df_with_energy, cap_bands, p_cap_df, energy_model,
-            single_K_energy, energy_payoff, theta, portfolio_mw
+            single_K_energy, energy_payoff, theta, portfolio_mw, pred_cols
         )
         
         # Merge energy results back into revenue dataframe
@@ -646,6 +963,49 @@ def value_afrr_down_two_bids(
     expected_activations = safe_float(total_intervals * theta_value if theta_value else 0)
     avg_energy_payoff = safe_float(energy_results.get('avg_payoff_per_MWh', 0) if energy_results else 0)
     
+    # ---- WIND BSP CAPACITY FACTOR ANALYSIS ----
+    capacity_factor_analysis = {}
+    if 'mw_deliverable' in final_df.columns:
+        deliverable_capacity = final_df['mw_deliverable']
+        capacity_factor_analysis = compute_capacity_factor_uncertainty(
+            final_df, deliverable_capacity, portfolio_mw, method="historical"
+        )
+        capacity_factor_analysis['avg_deliverable_mw'] = safe_float(deliverable_capacity.mean())
+        capacity_factor_analysis['capacity_utilization'] = safe_float(
+            (final_df['mw_available'] / deliverable_capacity).mean() if deliverable_capacity.mean() > 0 else 0
+        )
+    
+    # ---- RISK ASSESSMENT ----
+    risk_analysis = {}
+    if enable_risk_assessment and len(final_df) > bootstrap_block_days * 4:
+        try:
+            # Block bootstrap analysis on total revenue
+            risk_analysis = block_bootstrap_revenue_analysis(
+                final_df['total_revenue'], final_df['dt'], 
+                n_simulations=bootstrap_simulations, 
+                block_size_days=bootstrap_block_days
+            )
+            
+            # Add capacity-specific risk analysis
+            if 'capacity_revenue_capped' in final_df.columns:
+                cap_risk = block_bootstrap_revenue_analysis(
+                    final_df['capacity_revenue_capped'], final_df['dt'], 
+                    n_simulations=bootstrap_simulations//2,  # Fewer simulations for components
+                    block_size_days=bootstrap_block_days
+                )
+                risk_analysis['capacity_leg_risk'] = cap_risk
+                
+            if 'energy_revenue' in final_df.columns:
+                energy_risk = block_bootstrap_revenue_analysis(
+                    final_df['energy_revenue'], final_df['dt'], 
+                    n_simulations=bootstrap_simulations//2,
+                    block_size_days=bootstrap_block_days
+                )
+                risk_analysis['energy_leg_risk'] = energy_risk
+                
+        except Exception as e:
+            risk_analysis = {"error": f"Risk assessment failed: {str(e)}"}
+    
     # Build results dictionary
     cap_bands_serializable = [(float(v), float(k)) for v, k in cap_bands]
 
@@ -716,6 +1076,19 @@ def value_afrr_down_two_bids(
         "total_pln_portfolio": safe_convert_value(total_portfolio, "total_pln_portfolio", 0.0),
         "total_intervals": safe_convert_value(total_intervals, "total_intervals", 0),
         "bound_intervals": safe_convert_value(bound_intervals, "bound_intervals", 0),
+        
+        # Wind BSP capacity factor analysis
+        "capacity_factor_analysis": capacity_factor_analysis,
+        
+        # Risk assessment results 
+        "risk_analysis": risk_analysis,
+        
+        # Black-Scholes extension parameters
+        "deliverability_constraints": {
+            "capacity_factor": safe_convert_value(capacity_factor, "capacity_factor", 1.0),
+            "seasonal_cf_variation": safe_convert_value(seasonal_cf_variation, "seasonal_cf_variation", True),
+            "availability_haircut": safe_convert_value(availability_haircut, "availability_haircut", 1.0),
+        }
     }
     
     # Add energy leg results if available

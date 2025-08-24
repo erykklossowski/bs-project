@@ -23,6 +23,57 @@ The system implements both single-bid and **two-bid aFRR-down valuation models**
 - **Multiple input formats**: Support for CSV, Excel, and JSON files
 - **Web interface**: FastAPI application with interactive parameter configuration
 
+## Wind BSP Enhancements
+
+### Deliverable Capacity Constraints
+For wind Balancing Service Providers (BSPs), the model accounts for seasonal capacity availability patterns:
+
+```
+deliverable_mw,t = contracted_MW × CF_seasonal,t × availability_haircut
+```
+
+**Seasonal Capacity Factor Patterns (Poland-based)**:
+- **Winter** (Dec, Jan, Feb): 1.3× base CF (higher wind)
+- **Autumn** (Oct, Nov): 1.2× base CF 
+- **Spring** (Mar, Apr, May): 0.9× base CF
+- **Summer** (Jun, Jul, Aug, Sep): 0.8× base CF (lower wind)
+
+- **Base capacity factor**: Annual average (e.g., 30% typical for Poland)
+- **Seasonal variation**: Coarse monthly patterns without complex forecasting
+- **Availability haircut**: Additional operational constraint reduction
+
+### Risk Assessment & Uncertainty Quantification
+
+**Block Bootstrap Analysis**: 
+- Seasonal block bootstrap respecting market patterns
+- Annual revenue percentiles (P5, P25, P50, P75, P95)
+- Value-at-Risk (VaR) and Conditional VaR (CVaR) at 95% and 99% confidence levels
+
+**Regime-Switching Simulation**:
+- Low/medium/high capacity factor regimes
+- State-dependent activation probabilities
+- Volatility-based stress indicators
+
+### Extended Black-Scholes Framework
+
+The capacity factor is now treated as an additional stochastic parameter alongside price and acceptance probability:
+
+```
+Total_Revenue = E[Capacity_Revenue × CF_t] + E[Energy_Revenue × CF_t × θ_t]
+
+Where:
+- CF_t: Time-varying capacity factor
+- θ_t: State-dependent activation probability  
+- Both parameters exhibit regime-switching behavior
+```
+
+**Key Parameters**:
+- `capacity_factor`: Base capacity factor (0.0-1.0, e.g., 0.30 for 30% annual average)
+- `seasonal_cf_variation`: Enable seasonal patterns (default: True)
+- `availability_haircut`: Additional availability reduction (0.0-1.0)
+- `enable_risk_assessment`: Enable bootstrap analysis
+- `bootstrap_simulations`: Number of Monte Carlo simulations
+
 ## Complete Workflow
 
 ### Method 1: Direct aFRR Data Pipeline (Recommended)
