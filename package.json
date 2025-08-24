@@ -1,0 +1,20 @@
+{
+  "name": "afrr-two-bid-valuation",
+  "version": "1.0.0",
+  "description": "aFRR-down two-bid valuation with PSE data integration",
+  "main": "energy-prices-downloader.js",
+  "scripts": {
+    "install": "echo 'Node.js dependencies installed'",
+    "fetch-pse": "node energy-prices-downloader.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "fs": "^0.0.2",
+    "path": "^0.12.7"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Eryk Klossowski",
+  "license": "MIT"
+}

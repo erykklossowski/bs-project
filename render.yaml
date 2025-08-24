@@ -3,7 +3,7 @@ services:
     name: afrr-two-bid-valuation
     runtime: python
     plan: starter
-    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    buildCommand: npm install && pip install --upgrade pip && pip install -r requirements.txt
     startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT --workers 1
     envVars:
       - key: PYTHON_VERSION
