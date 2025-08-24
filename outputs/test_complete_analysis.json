@@ -1,0 +1,25 @@
+{
+  "report_type": "complete_analysis_summary",
+  "generated_at": "2025-08-24T17:13:44.393862",
+  "model_parameters": {
+    "portfolio_mw": 50.0,
+    "single_K_cap": 250.0,
+    "single_K_energy": -50.0,
+    "energy_pay_rule": "difference",
+    "theta": 0.01,
+    "cap_model": "parametric"
+  },
+  "total_results": {
+    "portfolio_mw": 50.0,
+    "total_capacity_revenue_pln": 1034896.5,
+    "total_energy_revenue_pln": 18476.25,
+    "total_revenue_pln": 1053372.75,
+    "per_mw_revenue_pln": 21067.46
+  },
+  "data_sources": {
+    "pse_afrr_prices": "PSE aFRR-down capacity prices",
+    "pse_volumes": "PSE procurement volumes",
+    "pse_energy_prices": "PSE CEB balancing energy prices (średnia)",
+    "predictors": "PSE market predictors (CEN, COR, SK, etc.)"
+  }
+}

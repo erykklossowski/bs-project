@@ -1,3 +1,0 @@
-year_month,price_pln_per_mw_h_mean,price_pln_per_mw_h_min,price_pln_per_mw_h_max,mw_procured_mean,capacity_revenue_baseline_sum,capacity_revenue_capped_sum,budget_envelope_sum,bound_flag_sum
-2024-06,106.75,68.91,178.85,400.0,17171.92,15476.96,21350.75,4
-2024-07,303.06,10.0,1000.0,400.0,2157223.03,1931348.48,7614264.75,287

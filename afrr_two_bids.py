@@ -409,12 +409,31 @@ def value_afrr_down_two_bids(
     # 5) Fit capacity acceptance probability model
     capacity_model = CapacityLegModel(cap_model, ridge_lambda)
     model_params = capacity_model.fit_capacity_model(df, "price_pln_per_mw_h", pred_cols)
+    # Ensure all model parameters are JSON serializable
+    def safe_serialize_array(arr, default=[]):
+        """Safely convert numpy array to list, handling NaN/Inf values."""
+        if arr is None:
+            return default
+        try:
+            # Convert to list and replace any problematic values
+            arr_list = arr.tolist() if hasattr(arr, 'tolist') else list(arr)
+            # Replace NaN and Inf with None (which becomes null in JSON)
+            cleaned = []
+            for val in arr_list:
+                if val is None or (hasattr(val, '__float__') and (np.isnan(val) or np.isinf(val))):
+                    cleaned.append(None)
+                else:
+                    cleaned.append(float(val) if hasattr(val, '__float__') else val)
+            return cleaned
+        except:
+            return default
+    
     model_params_serializable = {
-        "beta_mu": model_params.get("beta_mu").tolist() if "beta_mu" in model_params else [],
+        "beta_mu": safe_serialize_array(model_params.get("beta_mu"), []),
         "sigma": float(model_params.get("sigma", 0.0)),
-        "mu_t_series": model_params.get("mu_t_series", []).tolist() if "mu_t_series" in model_params else [],
-        "used_cols": model_params.get("used_cols", []),
-        "cap_model": model_params.get("cap_model")
+        "mu_t_series": safe_serialize_array(model_params.get("mu_t_series"), []),
+        "used_cols": list(model_params.get("used_cols", [])),
+        "cap_model": str(model_params.get("cap_model", "parametric"))
     }
     
     # 6) Compute capacity acceptance probabilities
@@ -533,28 +552,49 @@ def value_afrr_down_two_bids(
     # Build results dictionary
     cap_bands_serializable = [(float(v), float(k)) for v, k in cap_bands]
 
+    # Additional safety checks for specific fields
+    def safe_convert_value(val, field_name, default=None):
+        """Safely convert a value, with detailed error reporting."""
+        try:
+            if val is None:
+                return default
+            elif isinstance(val, (int, float, str, bool)):
+                if isinstance(val, float) and (np.isnan(val) or np.isinf(val)):
+                    print(f"Warning: {field_name} contains NaN/Inf, using default: {default}")
+                    return default
+                return val
+            elif hasattr(val, 'tolist'):
+                return val.tolist()
+            elif hasattr(val, 'item'):
+                return val.item()
+            else:
+                return str(val)
+        except Exception as e:
+            print(f"Warning: Could not convert {field_name} (type: {type(val)}): {e}")
+            return default
+
     results = {
         # Model configuration
-        "K_cap_values": K_cap_values.tolist(),
+        "K_cap_values": safe_convert_value(K_cap_values, "K_cap_values", []),
         "cap_bands": cap_bands_serializable,
-        "portfolio_mw": float(portfolio_mw),
-        "cap_model": cap_model,
+        "portfolio_mw": safe_convert_value(portfolio_mw, "portfolio_mw", 0.0),
+        "cap_model": safe_convert_value(cap_model, "cap_model", "parametric"),
         "model_params": model_params_serializable,
         
         # Template-expected fields for summary display
-        "total_capacity_revenue_pln": total_capacity_revenue,
-        "total_energy_revenue_pln": total_energy_revenue,
-        "total_revenue_pln": total_portfolio,
-        "per_mw_revenue_pln": per_mw_revenue,
-        "avg_capacity_acceptance_prob": avg_capacity_acceptance,
-        "bound_intervals_pct": bound_intervals_pct,
-        "energy_pay_rule": energy_pay_rule,
+        "total_capacity_revenue_pln": safe_convert_value(total_capacity_revenue, "total_capacity_revenue_pln", 0.0),
+        "total_energy_revenue_pln": safe_convert_value(total_energy_revenue, "total_energy_revenue_pln", 0.0),
+        "total_revenue_pln": safe_convert_value(total_portfolio, "total_revenue_pln", 0.0),
+        "per_mw_revenue_pln": safe_convert_value(per_mw_revenue, "per_mw_revenue_pln", 0.0),
+        "avg_capacity_acceptance_prob": safe_convert_value(avg_capacity_acceptance, "avg_capacity_acceptance_prob", 0.0),
+        "bound_intervals_pct": safe_convert_value(bound_intervals_pct, "bound_intervals_pct", 0.0),
+        "energy_pay_rule": safe_convert_value(energy_pay_rule, "energy_pay_rule", "difference"),
         
         # Energy leg summary
-        "K_energy": K_energy_value,
-        "theta": theta_value,
-        "expected_energy_activations": expected_activations,
-        "avg_energy_payoff_per_mwh": avg_energy_payoff,
+        "K_energy": safe_convert_value(K_energy_value, "K_energy", 0.0),
+        "theta": safe_convert_value(theta_value, "theta", 0.0),
+        "expected_energy_activations": safe_convert_value(expected_activations, "expected_energy_activations", 0.0),
+        "avg_energy_payoff_per_mwh": safe_convert_value(avg_energy_payoff, "avg_energy_payoff_per_mwh", 0.0),
         
         # Capacity bid stats for table display - ensure all numeric
         "capacity_bid_stats": [
@@ -569,16 +609,16 @@ def value_afrr_down_two_bids(
         ],
         
         # Legacy fields for compatibility - ensure all numeric
-        "capacity_pln_perMW_baseline": safe_float(cap_perMW_baseline),
-        "capacity_pln_perMW_capped": safe_float(cap_perMW_capped), 
-        "capacity_pln_portfolio_baseline": safe_float(cap_portfolio_baseline),
-        "capacity_pln_portfolio_capped": safe_float(cap_portfolio_capped),
+        "capacity_pln_perMW_baseline": safe_convert_value(cap_perMW_baseline, "capacity_pln_perMW_baseline", 0.0),
+        "capacity_pln_perMW_capped": safe_convert_value(cap_perMW_capped, "capacity_pln_perMW_capped", 0.0), 
+        "capacity_pln_portfolio_baseline": safe_convert_value(cap_portfolio_baseline, "capacity_pln_portfolio_baseline", 0.0),
+        "capacity_pln_portfolio_capped": safe_convert_value(cap_portfolio_capped, "capacity_pln_portfolio_capped", 0.0),
         "capacity_acceptance_stats": acceptance_stats or [],
         
         # Total results - ensure all numeric
-        "total_pln_portfolio": safe_float(total_portfolio),
-        "total_intervals": int(total_intervals) if total_intervals else 0,
-        "bound_intervals": int(bound_intervals) if bound_intervals else 0,
+        "total_pln_portfolio": safe_convert_value(total_portfolio, "total_pln_portfolio", 0.0),
+        "total_intervals": safe_convert_value(total_intervals, "total_intervals", 0),
+        "bound_intervals": safe_convert_value(bound_intervals, "bound_intervals", 0),
     }
     
     # Add energy leg results if available
@@ -587,32 +627,108 @@ def value_afrr_down_two_bids(
     
     # Add interval data if requested
     if return_intervals:
-        results["intervals"] = final_df.to_dict(orient="records")
+        # Convert DataFrame to JSON-serializable format
+        try:
+            results["intervals"] = final_df.to_dict(orient="records")
+        except Exception as e:
+            print(f"Warning: Could not serialize intervals data: {e}")
+            results["intervals"] = []
 
-        # Chart data for visualization
+        # Chart data for visualization - ensure all values are serializable
+        def safe_series_to_list(series, default_val=0):
+            """Safely convert pandas series to list, handling NaN/Inf values."""
+            try:
+                if series is None:
+                    return [default_val] * len(final_df)
+                # Replace NaN/Inf with default values
+                cleaned_series = series.fillna(default_val)
+                # Convert to list and ensure all values are basic types
+                result = []
+                for val in cleaned_series:
+                    if val is None or (hasattr(val, '__float__') and (np.isnan(val) or np.isinf(val))):
+                        result.append(default_val)
+                    else:
+                        result.append(float(val) if hasattr(val, '__float__') else default_val)
+                return result
+            except:
+                return [default_val] * len(final_df)
+
         results["chart_data"] = {
             "dt": final_df["dt"].dt.strftime("%Y-%m-%d %H:%M:%S").tolist(),
-            "P_cap": final_df["price_pln_per_mw_h"].tolist(),
-            "Q_proc": final_df["mw_procured"].tolist(),
-            "R_cap_baseline": final_df["capacity_revenue_baseline"].tolist(),
-            "R_cap_capped": final_df["capacity_revenue_capped"].tolist(),
-            "budget_envelope": final_df["budget_envelope"].tolist(),
-            "R_total": final_df["total_revenue"].tolist(),
-            "bound_flag": final_df["bound_flag"].tolist()
+            "P_cap": safe_series_to_list(final_df["price_pln_per_mw_h"]),
+            "Q_proc": safe_series_to_list(final_df["mw_procured"]),
+            "R_cap_baseline": safe_series_to_list(final_df["capacity_revenue_baseline"]),
+            "R_cap_capped": safe_series_to_list(final_df["capacity_revenue_capped"]),
+            "budget_envelope": safe_series_to_list(final_df["budget_envelope"]),
+            "R_total": safe_series_to_list(final_df["total_revenue"]),
+            "bound_flag": final_df["bound_flag"].astype(int).tolist()
         }
 
         # Add energy data if available
         if "energy_revenue" in final_df.columns:
-            s_bal_data = final_df[col_energy].tolist() if col_energy and col_energy in final_df.columns else [0] * len(final_df)
-            p_energy_data = final_df["p_energy"].tolist() if "p_energy" in final_df.columns else [0] * len(final_df)
+            s_bal_data = safe_series_to_list(final_df.get(col_energy, pd.Series([0] * len(final_df))))
+            p_energy_data = safe_series_to_list(final_df.get("p_energy", pd.Series([0] * len(final_df))))
 
             results["chart_data"].update({
                 "S_bal": s_bal_data,
-                "R_energy": final_df["energy_revenue"].tolist(),
+                "R_energy": safe_series_to_list(final_df["energy_revenue"]),
                 "p_energy": p_energy_data
             })
     
-    return results
+    # Final safety check: ensure entire results dictionary is JSON serializable
+    def clean_for_json(obj, path=""):
+        """Recursively clean object to ensure JSON serializability."""
+        try:
+            if obj is None:
+                return None
+            elif isinstance(obj, (int, float, str, bool)):
+                # Handle numeric values - replace NaN/Inf with None
+                if isinstance(obj, float) and (np.isnan(obj) or np.isinf(obj)):
+                    print(f"Warning: Found NaN/Inf at {path}, replacing with None")
+                    return None
+                return obj
+            elif isinstance(obj, (list, tuple)):
+                return [clean_for_json(item, f"{path}[{i}]") for i, item in enumerate(obj)]
+            elif isinstance(obj, dict):
+                return {key: clean_for_json(value, f"{path}.{key}") for key, value in obj.items()}
+            elif hasattr(obj, 'tolist'):  # numpy arrays
+                try:
+                    return clean_for_json(obj.tolist(), f"{path}.tolist()")
+                except Exception as e:
+                    print(f"Warning: Could not convert numpy array at {path}: {e}")
+                    return None
+            elif hasattr(obj, 'item'):  # numpy scalars
+                try:
+                    return clean_for_json(obj.item(), f"{path}.item()")
+                except Exception as e:
+                    print(f"Warning: Could not convert numpy scalar at {path}: {e}")
+                    return None
+            elif hasattr(obj, 'dtype'):  # pandas/numpy objects
+                try:
+                    if hasattr(obj, 'values'):
+                        return clean_for_json(obj.values.tolist(), f"{path}.values")
+                    else:
+                        return clean_for_json(obj.tolist(), f"{path}.tolist()")
+                except Exception as e:
+                    print(f"Warning: Could not convert pandas/numpy object at {path}: {e}")
+                    return None
+            else:
+                # Try to convert to string, fallback to None
+                try:
+                    return str(obj)
+                except Exception as e:
+                    print(f"Warning: Could not convert object at {path} (type: {type(obj)}): {e}")
+                    return None
+        except Exception as e:
+            print(f"Error cleaning object at {path} (type: {type(obj)}): {e}")
+            return None
+    
+    # Clean the entire results dictionary
+    print("Cleaning results dictionary for JSON serialization...")
+    cleaned_results = clean_for_json(results, "root")
+    print("Results dictionary cleaned successfully!")
+    
+    return cleaned_results
 
 
 def explore_parameter_space(

@@ -1,0 +1,29 @@
+{
+  "report_type": "monthly_aggregated_results",
+  "generated_at": "2025-08-24T17:13:44.403610",
+  "portfolio_mw": 50.0,
+  "model_parameters": {
+    "portfolio_mw": 50.0,
+    "single_K_cap": 250.0,
+    "single_K_energy": -50.0,
+    "energy_pay_rule": "difference",
+    "theta": 0.01,
+    "cap_model": "parametric"
+  },
+  "monthly_results": [
+    {
+      "month": "2024-07",
+      "capacity_revenue_pln": 255.7,
+      "energy_revenue_pln": 27.4,
+      "total_revenue_pln": 283.1,
+      "intervals_count": 2
+    },
+    {
+      "month": "2024-08",
+      "capacity_revenue_pln": 120.8,
+      "energy_revenue_pln": 8.7,
+      "total_revenue_pln": 129.5,
+      "intervals_count": 1
+    }
+  ]
+}

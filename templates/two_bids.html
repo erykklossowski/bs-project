@@ -55,11 +55,6 @@
   <h1>aFRR-down Two-Bid Valuation</h1>
   <div class="subtitle">Separate capacity premium and energy strike bidding with PSE data integration</div>
 
-  <div class="nav-links">
-    <a href="/">← Single-Bid Model</a>
-    <a href="/two-bids">Two-Bid Model</a>
-  </div>
-
   {% if error %}<div class="error"><strong>Error:</strong> {{ error }}</div>{% endif %}
 
   <!-- PSE Data Status -->
@@ -83,6 +78,31 @@
         </div>
       </div>
     {% endif %}
+  </div>
+
+  <!-- Data Fetching Controls -->
+  <div class="fetch-controls" style="background:#fff3cd; border:1px solid #ffeaa7; padding:16px; border-radius:8px; margin:16px 0;">
+    <h3>🔽 Download PSE Data</h3>
+    <div class="help-text" style="margin-bottom:16px;">
+      Automatically download aFRR-down capacity prices, procurement volumes, and market predictors from PSE API
+    </div>
+    
+    <form id="fetch-form" style="margin-bottom:16px;">
+      <div class="grid">
+        <label>Start Date <input type="date" name="start_date" value="2024-07-01" required></label>
+        <label>End Date <input type="date" name="end_date" value="2025-06-30" required></label>
+      </div>
+      <button type="submit" class="btn-info" id="fetch-btn">
+        📥 Fetch aFRR Data from PSE
+      </button>
+    </form>
+
+    <div class="help-text">
+      <strong>Data Sources:</strong><br>
+      • <strong>aFRR-down Prices:</strong> cmbu-tu endpoint (afrr_d field) - Primary underlying for Black-Scholes<br>
+      • <strong>Procurement Volumes:</strong> zmb endpoint (zmb_afrrd field) - Actual MW for budget constraints<br>
+      • <strong>Market Predictors:</strong> price-cost endpoint (CEN, COR, SK) - For μₜ drift modeling
+    </div>
   </div>
 
   <!-- Analysis Parameters -->
@@ -174,7 +194,7 @@
       • <strong>Capacity Revenue:</strong> K_cap × acceptance_prob(K_cap) × portfolio_MW × 0.25h<br>
       • <strong>Energy Revenue:</strong> [if accepted] × activation_prob(θ) × energy_payoff × portfolio_MW<br>
       • <strong>Total Revenue:</strong> Capacity + Energy legs combined per interval<br>
-      • <strong>Data Sources:</strong> PSE aFRR prices, volumes, and synthetic balancing energy data
+      • <strong>Data Sources:</strong> PSE aFRR prices, volumes, and CEB balancing energy prices
     </div>
 
     <button type="submit" class="btn-success" 
@@ -324,6 +344,85 @@ document.addEventListener('DOMContentLoaded', function() {
   updateCapacityBiddingMode(); // Initialize
 });
 
+// Data fetching functionality (copied from main template)
+document.getElementById('fetch-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(e.target);
+  const fetchBtn = document.getElementById('fetch-btn');
+  const originalText = fetchBtn.textContent;
+  
+  // Disable button and show fetching state
+  fetchBtn.disabled = true;
+  fetchBtn.textContent = '⏳ Fetching Data...';
+  
+  try {
+    const response = await fetch('/fetch-data', {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    
+    // Start polling for status updates
+    pollFetchStatus();
+    
+  } catch (error) {
+    alert(`Failed to start data fetch: ${error.message}`);
+    fetchBtn.disabled = false;
+    fetchBtn.textContent = originalText;
+  }
+});
+
+// Poll for fetch status updates
+async function pollFetchStatus() {
+  try {
+    const response = await fetch('/fetch-status');
+    const status = await response.json();
+    
+    updateFetchStatus(status);
+    
+    if (status.status === 'fetching' || status.status === 'processing') {
+      setTimeout(pollFetchStatus, 2000); // Poll every 2 seconds
+    } else {
+      // Fetch completed or failed, re-enable button and reload page
+      setTimeout(() => {
+        location.reload();
+      }, 2000);
+    }
+  } catch (error) {
+    console.error('Error polling fetch status:', error);
+  }
+}
+
+// Update fetch status display
+function updateFetchStatus(status) {
+  const progressDiv = document.getElementById('fetch-progress');
+  
+  if (status.status === 'fetching' || status.status === 'processing') {
+    if (!progressDiv) {
+      // Create progress display if it doesn't exist
+      const statusDiv = document.querySelector('.data-status');
+      statusDiv.innerHTML += `
+        <div id="fetch-progress">
+          <div id="status-message">Status: ${status.message}</div>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: ${status.progress}%"></div>
+          </div>
+        </div>
+      `;
+    } else {
+      // Update existing progress
+      document.getElementById('status-message').textContent = `Status: ${status.message}`;
+      document.querySelector('.progress-fill').style.width = `${status.progress}%`;
+    }
+  }
+}
+
 {% if chart %}
 // Chart rendering for two-bid results
 const DT = {{ chart.dt|tojson }};
@@ -332,8 +431,8 @@ const CAP_PRICE = {{ chart.capacity_price_pln_per_mw_h|tojson }};
 const CAP_REVENUE = {{ chart.capacity_revenue_pln|tojson if chart.capacity_revenue_pln is defined else '[]' }};
 const ENERGY_REVENUE = {{ chart.energy_revenue_pln|tojson if chart.energy_revenue_pln is defined else '[]' }};
 const TOTAL_REVENUE = {{ chart.total_revenue_pln|tojson if chart.total_revenue_pln is defined else '[]' }};
-const ENERGY_PRICE = {{ chart.energy_price_pln_per_mwh|tojson if chart.energy_price_pln_per_mwh is defined else '[]' }};
-const K_ENERGY_LINE = {{ chart.K_energy_line|tojson if chart.K_energy_line is defined else '[]' }};
+const ENERGY_PRICE = {{ chart.energy_price_pln_per_mwh|tojson if chart and chart.energy_price_pln_per_mwh is defined else '[]' }};
+const K_ENERGY_LINE = {{ chart.K_energy_line|tojson if chart and chart.K_energy_line is defined else '[]' }};
 
 // 1) Capacity acceptance probability
 if (CAP_ACCEPT.length > 0) {
@@ -349,13 +448,13 @@ if (CAP_ACCEPT.length > 0) {
     }, {displayModeBar:false, responsive:true});
 }
 
-// 2) Energy price vs K_energy strike
+// 2) Energy price vs K_energy strike (PSE CEB balancing prices)
 if (ENERGY_PRICE.length > 0 && K_ENERGY_LINE.length > 0) {
   Plotly.newPlot('chart_energy', [
-    { x: DT, y: ENERGY_PRICE, mode: 'lines', name: 'Balancing Energy Price', line: {color: '#28a745', width: 2} },
+    { x: DT, y: ENERGY_PRICE, mode: 'lines', name: 'PSE CEB Balancing Price', line: {color: '#28a745', width: 2} },
     { x: DT, y: K_ENERGY_LINE, mode: 'lines', name: 'K_energy Strike', line: {dash:'dot', color: '#dc3545', width: 2} }
   ], {
-    title: 'Energy Leg - Balancing Price vs Energy Strike',
+    title: 'Energy Leg - PSE CEB Balancing Price vs Energy Strike',
     xaxis: { type: 'date', title: 'Date' }, 
     yaxis: { title: 'Price (PLN/MWh)' }, 
     margin: {t:50, b:50, l:80, r:30},

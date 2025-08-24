@@ -4,13 +4,24 @@ This project provides a comprehensive framework for valuing aFRR-DOWN (automatic
 
 ## Overview
 
-The system implements:
+The system implements both single-bid and **two-bid aFRR-down valuation models**:
+
+### Single-Bid Model (Traditional Black-Scholes)
 - **Ex-ante valuation**: Option pricing using lognormal price models with predictive modeling
 - **Ex-post valuation**: Realized payoff calculations for performance assessment
 - **Budget constraints**: Portfolio-level budget capping based on market capacity
+
+### Two-Bid Model (Advanced Portfolio Optimization)
+- **Capacity leg**: Separate bid for capacity availability at strike price K_cap
+- **Energy leg**: Separate bid for energy delivery at strike price K_energy
+- **Dual optimization**: Independent pricing and risk management for each leg
+- **Enhanced payoffs**: Capacity revenue + conditional energy revenue when activated
+
+### Common Features
 - **Real-time data**: Direct integration with PSE API for live market data
 - **Time alignment**: Robust handling of 15-minute market intervals
 - **Multiple input formats**: Support for CSV, Excel, and JSON files
+- **Web interface**: FastAPI application with interactive parameter configuration
 
 ## Complete Workflow
 
@@ -195,6 +206,182 @@ portfolio_cap = fair_share × budget_interval
 
 **Validation**: This architecture uses actual aFRR-down market data throughout, eliminating proxy dependencies and ensuring economic accuracy of the Black-Scholes valuation.
 
+## Two-Bid aFRR Model: Complete Theory and Implementation
+
+The two-bid model represents an advanced approach to aFRR-down market participation, splitting the traditional single bid into **capacity** and **energy** components for optimal risk-return management.
+
+### Economic Foundation
+
+**Traditional aFRR-down Market**:
+In standard aFRR-down markets, participants submit single bids stating the price at which they're willing to provide downward frequency regulation. When market prices exceed the bid price, the participant is obligated to both:
+1. Make capacity available (receive capacity payment)
+2. Reduce generation if activated (receive energy payment)
+
+**Two-Bid Innovation**:
+The two-bid model recognizes these as **separate economic decisions**:
+
+1. **Capacity Leg**: "At what price am I willing to make my plant available for potential activation?"
+2. **Energy Leg**: "Given that I'm already committed to be available, at what price am I willing to actually reduce generation?"
+
+### Mathematical Framework
+
+**Dual Black-Scholes Formulation**:
+
+The total portfolio value combines two independent option components:
+
+```
+Total_Revenue = Capacity_Revenue + Energy_Revenue
+
+Where:
+Capacity_Revenue = E[(S_cap(t) - K_cap)^+] × MW_portfolio × Δt
+Energy_Revenue = E[(S_energy(t) - K_energy)^+] × MW_activated × Δt × θ
+```
+
+**Parameters**:
+- `S_cap(t)`: Market capacity price process (aFRR-down marginal prices)
+- `S_energy(t)`: Market energy price process (typically balancing energy prices)
+- `K_cap`: Capacity strike price (bidding threshold for capacity availability)
+- `K_energy`: Energy strike price (bidding threshold for actual generation reduction)
+- `θ`: Activation probability (fraction of time capacity becomes energy)
+- `Δt`: Time interval (0.25 hours for 15-minute PSE intervals)
+
+### Key Model Components
+
+**1. Capacity Leg Valuation**:
+```python
+# From app.py lines 1020-1040
+capacity_revenue = bs_call(
+    S=capacity_price,        # aFRR-down marginal capacity price
+    K=K_cap,                 # Capacity strike (e.g., 400 PLN/MW-h)
+    sigma=volatility_cap,    # Capacity price volatility
+    mu=drift_cap,           # Expected capacity price appreciation
+    T=time_to_expiry
+) × portfolio_MW × 0.25h
+```
+
+**2. Energy Leg Valuation**:
+```python
+# From app.py lines 1040-1060
+energy_revenue = bs_call(
+    S=energy_price,          # Balancing energy price (CEB)
+    K=K_energy,             # Energy strike (e.g., 50 PLN/MWh)
+    sigma=volatility_energy, # Energy price volatility
+    mu=drift_energy,        # Expected energy price appreciation
+    T=time_to_expiry
+) × portfolio_MW × theta × 0.25h
+```
+
+**3. Total Portfolio Valuation**:
+The key insight is that these are **independent decisions**:
+- Capacity availability (always when S_cap > K_cap)
+- Energy delivery (only when S_energy > K_energy AND capacity is available)
+
+### Implementation Architecture
+
+**Web Interface (app.py)**:
+The FastAPI application at `/two-bids` endpoint provides:
+
+1. **Parameter Configuration**:
+   - Portfolio size (MW)
+   - Capacity strike K_cap (PLN/MW-h)
+   - Energy strike K_energy (PLN/MWh)  
+   - Activation probability θ (0-1)
+   - Model selection (empirical vs parametric)
+
+2. **Data Processing**:
+   - PSE capacity prices → Capacity leg Black-Scholes input
+   - PSE energy prices → Energy leg Black-Scholes input
+   - Market volume data → Budget constraint calculations
+   - Predictor variables → Drift estimation for both legs
+
+3. **Risk Management**:
+   - **Budget constraints**: Applied to capacity leg using real PSE procurement volumes
+   - **Portfolio sizing**: Market share calculation based on actual MW available
+   - **Capping logic**: `min(unconstrained_value, market_budget × fair_share)`
+
+### Payoff Functions
+
+**Capacity Payoff** (when capacity prices exceed strike):
+```
+if capacity_price ≥ K_cap:
+    capacity_payoff = (capacity_price - K_cap) × MW × 0.25h
+else:
+    capacity_payoff = 0
+```
+
+**Energy Payoff** (when energy prices exceed strike AND capacity is committed):
+```
+if energy_price ≥ K_energy AND capacity_committed:
+    energy_payoff = (energy_price - K_energy) × MW × θ × 0.25h
+else:
+    energy_payoff = 0
+```
+
+**Combined Payoff**:
+```
+total_payoff = capacity_payoff + energy_payoff
+```
+
+### Model Variations
+
+**1. Bidding Modes**:
+- **Single K_cap**: One capacity strike for entire portfolio
+- **Banded K_cap**: Multiple capacity strikes with volume allocation
+- **Dynamic K_cap**: Time-varying strikes based on market conditions
+
+**2. Energy Payment Rules**:
+- **"difference"**: Pay only the difference (K_energy - realized_cost)  
+- **"full"**: Pay the full energy strike price
+- **"marginal"**: Pay the marginal system price
+
+**3. Activation Modeling**:
+- **Fixed θ**: Constant activation probability
+- **Variable θ**: Time-varying based on system stress indicators
+- **Empirical θ**: Derived from historical activation patterns
+
+### Economic Advantages
+
+**Risk Decomposition**:
+1. **Capacity Risk**: Market-wide supply/demand for reserves
+2. **Energy Risk**: Real-time system imbalance and activation need
+3. **Independent Optimization**: Different risk-return profiles for each leg
+
+**Strategic Benefits**:
+- **Capacity-focused strategy**: High K_cap, low K_energy → Collect capacity premiums during tight market conditions
+- **Energy-focused strategy**: Low K_cap, high K_energy → Ensure activation but demand premium for actual generation changes
+- **Balanced strategy**: Moderate strikes on both legs → Diversified revenue streams
+
+### Performance Analysis
+
+**Key Metrics Generated**:
+1. **Capacity Acceptance Rate**: `% intervals where capacity_price ≥ K_cap`
+2. **Energy Activation Rate**: `% intervals where energy_price ≥ K_energy (given capacity committed)`  
+3. **Combined Revenue**: `capacity_revenue + energy_revenue`
+4. **Risk Metrics**: Volatility of combined payoffs, correlation between legs
+5. **Budget Utilization**: `% of market capacity budget consumed`
+
+**Output Reports** (JSON format):
+- **Monthly aggregation**: Revenue breakdown by capacity vs energy components
+- **Daily analysis**: Detailed performance tracking with market conditions
+- **Complete intervals**: 15-minute granular data for backtesting and validation
+
+### Practical Example
+
+**Portfolio**: 50 MW aFRR-down capacity
+**Capacity Strike**: 400 PLN/MW-h
+**Energy Strike**: 50 PLN/MWh
+**Activation Rate**: 1% (θ = 0.01)
+
+**Scenario**: Market capacity price = 500 PLN/MW-h, Energy price = 75 PLN/MWh
+
+```
+Capacity Revenue = (500 - 400) × 50 MW × 0.25h = 1,250 PLN
+Energy Revenue = (75 - 50) × 50 MW × 0.01 × 0.25h = 0.3125 PLN
+Total Revenue = 1,250.3125 PLN per interval
+```
+
+This demonstrates how **capacity revenue dominates** in typical market conditions, while energy revenue provides **upside optionality** during extreme events.
+
 ### Data Processing Pipeline
 1. **JavaScript Fetcher**: `energy-prices-downloader.js`
    - Handles API pagination automatically
@@ -224,10 +411,74 @@ portfolio_cap = fair_share × budget_interval
 
 ### Python Dependencies
 ```bash
-pip install pandas numpy scipy matplotlib openpyxl
+pip install pandas numpy scipy matplotlib openpyxl fastapi uvicorn jinja2
 # Or use requirements file:
 pip install -r requirements.txt
 ```
+
+## Web Interface Usage
+
+### Starting the Application
+```bash
+# Start the FastAPI web server
+python3 -m uvicorn app:app --reload --host 0.0.0.0 --port 8000
+```
+
+Then open your browser to: `http://localhost:8000`
+
+### Two-Bids Model Interface
+
+Navigate to the **"Two-Bid aFRR Valuation"** section to configure and run the advanced dual-leg model.
+
+**Parameter Configuration**:
+
+1. **Portfolio Parameters**:
+   - **Portfolio Size (MW)**: Total capacity offered (default: 50 MW)
+   - **Capacity Strike K_cap (PLN/MW-h)**: Minimum price for capacity availability (default: 400)
+   - **Energy Strike K_energy (PLN/MWh)**: Minimum price for energy delivery (default: 50)
+
+2. **Model Parameters**:
+   - **Activation Probability θ**: Fraction of capacity intervals that become energy (default: 0.01)
+   - **Energy Payment Rule**: "difference", "full", or "marginal"
+   - **Capacity Model**: "empirical" (from data) or "parametric" (estimated)
+   - **Ridge Lambda**: Regularization for predictor models (0.0-2.0)
+
+3. **Data Selection**:
+   - **Predictor Columns**: Market variables for drift estimation (CEN, COR, SK, etc.)
+   - **Output Prefix**: Filename prefix for generated reports
+
+**Running Analysis**:
+1. Configure parameters in the web form
+2. Click **"Run Two-Bid Analysis"** 
+3. Wait for processing (typically 10-30 seconds)
+4. Review results in the **Summary** section
+5. Download detailed reports via **"Download JSON Reports"** links
+
+**Key Output Metrics**:
+- **Total Revenue**: Combined capacity + energy revenue over analysis period
+- **Capacity Acceptance Rate**: Percentage of intervals where capacity was accepted
+- **Energy Activation Rate**: Percentage of intervals where energy was delivered
+- **Budget Utilization**: Fraction of available market budget consumed
+- **Risk Metrics**: Volatility and correlation statistics
+
+### Report Downloads
+
+The system generates three comprehensive JSON reports:
+
+1. **Complete Analysis** (`two_bids_complete_analysis.json`):
+   - Full interval-by-interval data (35,000+ records)
+   - Detailed pricing, volumes, and payoff calculations
+   - Suitable for backtesting and model validation
+
+2. **Monthly Results** (`two_bids_monthly_results.json`):
+   - Monthly aggregated performance (13 months: June 2024 - June 2025)
+   - Revenue breakdown by capacity vs energy components
+   - Business metrics for financial reporting
+
+3. **Daily Results** (`two_bids_daily_results.json`):
+   - Daily performance tracking (365+ days)
+   - Market condition analysis and model performance
+   - Operational insights for daily decision-making
 
 ## Black-Scholes Model Parameters
 

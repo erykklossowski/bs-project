@@ -5,14 +5,13 @@ from typing import Optional
 from datetime import datetime, timedelta
 import pandas as pd
 from fastapi import FastAPI, Request, Form, HTTPException, BackgroundTasks, UploadFile
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from afrr_valuation import value_afrr_down
 from afrr_two_bids import value_afrr_down_two_bids
 
-app = FastAPI(title="aFRR-down Valuation Suite", version="2.0.0")
+app = FastAPI(title="aFRR-down Two-Bid Valuation", version="2.0.0")
 
 # Create directories if they don't exist
 os.makedirs("static", exist_ok=True)
@@ -76,31 +75,14 @@ async def fetch_pse_data(start_date: str, end_date: str):
         # Process the downloaded data
         fetch_status = {"status": "processing", "progress": 70, "message": "Processing downloaded data..."}
         
-        # Process energy prices data  
-        subprocess.run([
-            'python3', 'process_energy_prices.py',
-            '--input', 'pse_data_js/energy_prices.json',
-            '--output-dir', 'pse_processed_auto'
-        ], cwd=Path.cwd(), check=True)
+        fetch_status = {"status": "completed", "progress": 100, "message": "Data download completed!"}
         
-        # Also process direct aFRR data if available
-        try:
-            subprocess.run([
-                'python3', 'process_pse_data.py',
-                '--raw-dir', 'pse_raw_auto', 
-                '--output-dir', 'pse_processed_auto'
-            ], cwd=Path.cwd(), check=False, capture_output=True, text=True)
-        except Exception as e:
-            print(f"Direct aFRR processing failed (expected): {e}")
-        
-        fetch_status = {"status": "completed", "progress": 100, "message": "Data download and processing completed!"}
-        
-        # Check which files were created
-        output_dir = Path("pse_processed_auto")
+        # Check which JavaScript data files were created
+        js_data_path = Path("pse_data_js")
         files_created = []
         
-        for file_pattern in ["afrr_prices.csv", "afrr_volumes.csv", "predictors.csv"]:
-            file_path = output_dir / file_pattern
+        for file_pattern in ["energy_prices.json", "afrr_marginal_prices.json", "afrr_volumes_mbp.json", "total_costs.json"]:
+            file_path = js_data_path / file_pattern
             if file_path.exists():
                 files_created.append(str(file_path))
         
@@ -118,28 +100,61 @@ async def fetch_pse_data(start_date: str, end_date: str):
         raise HTTPException(status_code=500, detail=f"Data fetch failed: {str(e)}")
 
 def load_auto_data() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    """Load automatically fetched PSE data."""
-    base_path = Path("pse_processed_auto")
+    """Load PSE data from JavaScript downloader (no synthetics)."""
+    js_data_path = Path("pse_data_js")
     
-    # Load price data
-    price_file = base_path / "afrr_prices.csv"
-    if price_file.exists():
-        prices_df = pd.read_csv(price_file)
+    # Load aFRR marginal capacity prices (CMBU-TU)
+    capacity_file = js_data_path / "afrr_marginal_prices.json"
+    if capacity_file.exists():
+        with open(capacity_file, 'r') as f:
+            capacity_data = json.load(f)
+        
+        prices_df = pd.DataFrame(capacity_data)
+        # Map to expected format: dt, price_pln_per_mw_h (afrr_d = marginal prices)
+        prices_df = prices_df[['dtime_utc', 'afrr_d']].copy()
+        prices_df.columns = ['dt', 'price_pln_per_mw_h']
+        prices_df['dt'] = pd.to_datetime(prices_df['dt'])
+        # Remove null prices
+        prices_df = prices_df.dropna(subset=['price_pln_per_mw_h'])
+        print(f"✅ Loaded aFRR marginal capacity prices: {len(prices_df)} records")
+        print(f"   Price range: {prices_df['price_pln_per_mw_h'].min():.2f} - {prices_df['price_pln_per_mw_h'].max():.2f} PLN/MW-h")
+        print(f"   Date range: {prices_df['dt'].min()} to {prices_df['dt'].max()}")
     else:
-        raise ValueError("No aFRR price data found. Please fetch data first.")
+        raise ValueError("No aFRR marginal price data found. Run JavaScript downloader first.")
     
-    # Load volume data  
-    vol_file = base_path / "afrr_volumes.csv"
+    # Load aFRR volume data (MBP-TP afrr_d field)
+    vol_file = js_data_path / "afrr_volumes_mbp.json"  
     if vol_file.exists():
-        vols_df = pd.read_csv(vol_file)
+        with open(vol_file, 'r') as f:
+            volume_data = json.load(f)
+        
+        vols_df = pd.DataFrame(volume_data)
+        # Map to expected format: dt, mw_procured (afrr_d = volumes in MW)
+        vols_df = vols_df[['dtime_utc', 'afrr_d']].copy()
+        vols_df.columns = ['dt', 'mw_procured']
+        vols_df['dt'] = pd.to_datetime(vols_df['dt'])
+        # Remove null volumes
+        vols_df = vols_df.dropna(subset=['mw_procured'])
+        print(f"✅ Loaded aFRR volumes from MBP-TP: {len(vols_df)} records")
+        print(f"   Volume range: {vols_df['mw_procured'].min():.0f} - {vols_df['mw_procured'].max():.0f} MW")
+        print(f"   Date range: {vols_df['dt'].min()} to {vols_df['dt'].max()}")
     else:
-        raise ValueError("No aFRR volume data found. Please fetch data first.")
+        raise ValueError("No aFRR volume data found. Run JavaScript downloader first.")
     
-    # Load predictor data (optional)
-    pred_file = base_path / "predictors.csv"
+    # Load predictor data from energy prices (CEN, COR, CSDAC)
+    energy_file = js_data_path / "energy_prices.json"
     preds_df = None
-    if pred_file.exists():
-        preds_df = pd.read_csv(pred_file)
+    if energy_file.exists():
+        with open(energy_file, 'r') as f:
+            energy_data = json.load(f)
+        
+        preds_df = pd.DataFrame(energy_data)
+        # Map to expected predictor format: dt, CEN, COR, CSDAC, CEB_SR
+        preds_df = preds_df[['dtime_utc', 'cen_cost', 'cor_cost', 'csdac_pln', 'ceb_sr_cost']].copy()
+        preds_df.columns = ['dt', 'CEN', 'COR', 'CSDAC', 'CEB_SR']
+        preds_df['dt'] = pd.to_datetime(preds_df['dt'])
+        print(f"✅ Loaded predictors from energy data: {len(preds_df)} records")
+        print(f"   Date range: {preds_df['dt'].min()} to {preds_df['dt'].max()}")
     
     return prices_df, vols_df, preds_df
 
@@ -164,118 +179,330 @@ def read_upload(file: UploadFile | None) -> pd.DataFrame | None:
         print(f"Error reading file {name}: {e}")
         return None
 
-def save_outputs(results: dict, prefix: str = "valuation") -> dict:
-    """Save analysis outputs to files and return download links."""
+def generate_json_reports(results: dict, params: dict, prefix: str = "two_bids") -> dict:
+    """Generate comprehensive JSON reports for download."""
+    import json
+    from datetime import datetime
+    
+    # Ensure outputs directory exists
+    Path("outputs").mkdir(exist_ok=True)
+    
     output_files = {}
     
-    try:
-        # Save intervals CSV if available
-        if "intervals_df" in results:
-            intervals_file = f"outputs/{prefix}_intervals.csv"
-            results["intervals_df"].to_csv(intervals_file, index=False)
-            output_files["intervals"] = {"name": "Intervals Data (CSV)", "path": f"/outputs/{prefix}_intervals.csv"}
+    # Clean data for JSON serialization  
+    def clean_for_json(obj, path=""):
+        """Recursively clean object to ensure JSON serializability."""
+        if obj is None:
+            return None
         
-        # Save summary JSON (excluding DataFrames)
-        summary_file = f"outputs/{prefix}_summary.json"
-        summary_data = {k: v for k, v in results.items() if k not in ["intervals_df", "chart_data"]}
-        
-        # Clean data for JSON serialization
-        def clean_for_json(obj):
-            # Handle None and Undefined objects
-            if obj is None:
+        # Handle Jinja2 Undefined objects
+        try:
+            obj_type_name = type(obj).__name__
+            if 'Undefined' in obj_type_name or 'undefined' in str(obj).lower():
                 return None
+        except:
+            pass
             
-            # Handle Jinja2 Undefined objects
-            if hasattr(obj, '__class__') and 'Undefined' in str(type(obj)):
-                return None
-            
-            # Handle numpy types
+        # Handle numpy types
+        if hasattr(obj, 'dtype'):
             if hasattr(obj, 'item'):  # numpy scalar
                 return obj.item()
-            
-            # Handle pandas/numpy arrays
-            if hasattr(obj, 'tolist'):
+            elif hasattr(obj, 'tolist'):  # numpy array
                 return obj.tolist()
+        
+        # Handle pandas types
+        if hasattr(obj, 'to_dict'):
+            try:
+                return clean_for_json(obj.to_dict())
+            except:
+                return str(obj)
+                
+        # Handle datetime
+        if isinstance(obj, (pd.Timestamp, datetime)):
+            return obj.isoformat()
             
-            # Handle dictionaries
-            if isinstance(obj, dict):
-                return {k: clean_for_json(v) for k, v in obj.items()}
+        # Handle inf and nan
+        if isinstance(obj, (float, int)):
+            if pd.isna(obj) or obj == float('inf') or obj == float('-inf'):
+                return None
+            return obj
             
-            # Handle lists and tuples
-            elif isinstance(obj, (list, tuple)):
-                return [clean_for_json(item) for item in obj]
+        # Handle lists and tuples
+        if isinstance(obj, (list, tuple)):
+            return [clean_for_json(item, f"{path}[{i}]") for i, item in enumerate(obj)]
             
-            # Handle objects with __dict__
-            elif hasattr(obj, '__dict__'):
-                return obj.__dict__
-            
-            # Handle basic types and fallback
-            elif isinstance(obj, (int, float, str, bool)):
-                return obj
-            
-            else:
-                # Convert other types to string as fallback
+        # Handle dictionaries
+        if isinstance(obj, dict):
+            cleaned = {}
+            for key, value in obj.items():
                 try:
-                    return str(obj)
-                except:
-                    return None
-        
-        summary_data_clean = clean_for_json(summary_data)
-        
-        with open(summary_file, 'w') as f:
-            json.dump(summary_data_clean, f, indent=2, default=str)
-        output_files["summary"] = {"name": "Summary (JSON)", "path": f"/outputs/{prefix}_summary.json"}
-        
-        # Create daily aggregates if we have enough data
-        if "intervals_df" in results:
-            df = results["intervals_df"]
-            if len(df) > 24:
-                df_copy = df.copy()
-                df_copy['date'] = pd.to_datetime(df_copy['dt']).dt.date
-                
-                agg_dict = {
-                    'price_pln_per_mw_h': ['mean', 'min', 'max'],
-                    'mw_procured': 'mean'
-                }
-                
-                # Add capacity revenue columns if they exist
-                if 'capacity_revenue_baseline' in df_copy.columns:
-                    agg_dict['capacity_revenue_baseline'] = 'sum'
-                if 'capacity_revenue_capped' in df_copy.columns:
-                    agg_dict['capacity_revenue_capped'] = 'sum'
-                if 'budget_envelope' in df_copy.columns:
-                    agg_dict['budget_envelope'] = 'sum'
-                if 'bound_flag' in df_copy.columns:
-                    agg_dict['bound_flag'] = 'sum'
-                
-                daily_agg = df_copy.groupby('date').agg(agg_dict).round(2)
-                daily_agg.columns = ['_'.join(col).strip() for col in daily_agg.columns]
-                
-                daily_file = f"outputs/{prefix}_daily.csv"
-                daily_agg.to_csv(daily_file)
-                output_files["daily"] = {"name": "Daily Aggregates (CSV)", "path": f"/outputs/{prefix}_daily.csv"}
+                    cleaned[str(key)] = clean_for_json(value, f"{path}.{key}")
+                except Exception as e:
+                    print(f"Warning: Could not clean {path}.{key}: {e}")
+                    cleaned[str(key)] = str(value)
+            return cleaned
+            
+        # Handle strings
+        if isinstance(obj, str):
+            return obj
+            
+        # Convert everything else to string as fallback
+        try:
+            return str(obj)
+        except:
+            return None
     
+    # Generate Report 1: Complete Analysis Summary
+    try:
+        total_report = {
+            "report_type": "complete_analysis_summary",
+            "generated_at": datetime.now().isoformat(),
+            "model_parameters": clean_for_json(params),
+            "total_results": {
+                "portfolio_mw": results.get("portfolio_mw", 0),
+                "total_capacity_revenue_pln": results.get("total_capacity_revenue_pln", 0),
+                "total_energy_revenue_pln": results.get("total_energy_revenue_pln", 0),
+                "total_revenue_pln": results.get("total_revenue_pln", 0),
+                "per_mw_revenue_pln": results.get("per_mw_revenue_pln", 0),
+                "avg_capacity_acceptance_prob": results.get("avg_capacity_acceptance_prob", 0),
+                "bound_intervals_pct": results.get("bound_intervals_pct", 0),
+                "total_intervals": results.get("total_intervals", 0),
+                "bound_intervals": results.get("bound_intervals", 0),
+                "expected_energy_activations": results.get("expected_energy_activations", 0),
+                "avg_energy_payoff_per_mwh": results.get("avg_energy_payoff_per_mwh", 0)
+            },
+            "model_details": {
+                "cap_model": results.get("cap_model", ""),
+                "energy_pay_rule": results.get("energy_pay_rule", ""),
+                "K_energy": results.get("K_energy", 0),
+                "theta": results.get("theta", 0),
+                "model_params": clean_for_json(results.get("model_params", {}))
+            },
+            "capacity_analysis": clean_for_json(results.get("capacity_bid_stats", [])),
+            "energy_leg_details": clean_for_json(results.get("energy_leg", {})) if "energy_leg" in results else {},
+            "data_sources": {
+                "pse_afrr_prices": "PSE aFRR-down capacity prices",
+                "pse_volumes": "PSE procurement volumes", 
+                "pse_energy_prices": "PSE CEB balancing energy prices (średnia)",
+                "predictors": "PSE market predictors (CEN, COR, SK, etc.)"
+            }
+        }
+        
+        total_file = f"outputs/{prefix}_complete_analysis.json"
+        with open(total_file, 'w', encoding='utf-8') as f:
+            json.dump(total_report, f, indent=2, ensure_ascii=False)
+        
+        output_files["complete"] = {
+            "name": "Complete Analysis Summary (JSON)", 
+            "path": f"/outputs/{prefix}_complete_analysis.json"
+        }
+        
     except Exception as e:
-        print(f"Error saving outputs: {e}")
+        print(f"Error generating complete analysis report: {e}")
+    
+    # Generate Report 2: Monthly Aggregated Results
+    try:
+        if "intervals" in results and results["intervals"]:
+            intervals_df = pd.DataFrame(results["intervals"])
+            print(f"Debug: Available interval columns: {list(intervals_df.columns)}")
+            intervals_df['dt'] = pd.to_datetime(intervals_df['dt'])
+            intervals_df['month'] = intervals_df['dt'].dt.to_period('M').astype(str)
+            
+            # Map to available columns (fallback for missing columns)
+            agg_dict = {}
+            if 'capacity_revenue_capped' in intervals_df.columns:
+                agg_dict['capacity_revenue_capped'] = 'sum'
+            elif 'capacity_revenue_baseline' in intervals_df.columns:
+                agg_dict['capacity_revenue_baseline'] = 'sum'
+                
+            if 'energy_revenue_pln' in intervals_df.columns:
+                agg_dict['energy_revenue_pln'] = 'sum'
+                
+            if 'total_revenue_pln' in intervals_df.columns:
+                agg_dict['total_revenue_pln'] = 'sum'
+                
+            if 'capacity_acceptance_prob' in intervals_df.columns:
+                agg_dict['capacity_acceptance_prob'] = 'mean'
+                
+            if 'capacity_price_pln_per_mw_h' in intervals_df.columns:
+                agg_dict['capacity_price_pln_per_mw_h'] = 'mean'
+                
+            if 'energy_price_pln_per_mwh' in intervals_df.columns:
+                agg_dict['energy_price_pln_per_mwh'] = 'mean'
+            
+            print(f"Debug: Using aggregation dict: {agg_dict}")
+            
+            if agg_dict:  # Only proceed if we have columns to aggregate
+                monthly_agg = intervals_df.groupby('month').agg(agg_dict).round(2)
+            
+            monthly_report = {
+                "report_type": "monthly_aggregated_results",
+                "generated_at": datetime.now().isoformat(),
+                "portfolio_mw": results.get("portfolio_mw", 0),
+                "model_parameters": clean_for_json(params),
+                "monthly_results": []
+            }
+            
+            # Build monthly results with PSE-aligned field semantics
+            for month, row in monthly_agg.iterrows():
+                month_result = {"month": month}
+                
+                # Add available columns with PSE-aligned names
+                if 'capacity_revenue_capped' in row:
+                    month_result["afrr_capacity_revenue_pln"] = clean_for_json(row['capacity_revenue_capped'])
+                elif 'capacity_revenue_baseline' in row:
+                    month_result["afrr_capacity_revenue_pln"] = clean_for_json(row['capacity_revenue_baseline'])
+                    
+                if 'energy_revenue_pln' in row:
+                    month_result["ceb_energy_revenue_pln"] = clean_for_json(row['energy_revenue_pln'])
+                    
+                if 'total_revenue_pln' in row:
+                    month_result["total_afrr_revenue_pln"] = clean_for_json(row['total_revenue_pln'])
+                    
+                if 'capacity_acceptance_prob' in row:
+                    month_result["avg_capacity_acceptance_prob"] = clean_for_json(row['capacity_acceptance_prob'])
+                    
+                if 'capacity_price_pln_per_mw_h' in row:
+                    month_result["avg_afrr_capacity_price_pln_per_mw_h"] = clean_for_json(row['capacity_price_pln_per_mw_h'])
+                    
+                if 'energy_price_pln_per_mwh' in row:
+                    month_result["avg_ceb_balancing_price_pln_per_mwh"] = clean_for_json(row['energy_price_pln_per_mwh'])
+                
+                month_result["intervals_count"] = int(intervals_df[intervals_df['month'] == month].shape[0])
+                month_result["business_dates_count"] = len(intervals_df[intervals_df['month'] == month]['dt'].dt.date.unique())
+                
+                monthly_report["monthly_results"].append(month_result)
+            
+            monthly_file = f"outputs/{prefix}_monthly_results.json"
+            with open(monthly_file, 'w', encoding='utf-8') as f:
+                json.dump(monthly_report, f, indent=2, ensure_ascii=False)
+                
+            output_files["monthly"] = {
+                "name": "Monthly Results (JSON)",
+                "path": f"/outputs/{prefix}_monthly_results.json"
+            }
+            
+    except Exception as e:
+        print(f"Error generating monthly report: {e}")
+    
+    # Generate Report 3: Daily Aggregated Results  
+    try:
+        if "intervals" in results and results["intervals"]:
+            intervals_df = pd.DataFrame(results["intervals"])
+            intervals_df['dt'] = pd.to_datetime(intervals_df['dt'])
+            intervals_df['date'] = intervals_df['dt'].dt.date.astype(str)
+            
+            # Map to available columns (fallback for missing columns)  
+            agg_dict = {}
+            if 'capacity_revenue_capped' in intervals_df.columns:
+                agg_dict['capacity_revenue_capped'] = 'sum'
+            elif 'capacity_revenue_baseline' in intervals_df.columns:
+                agg_dict['capacity_revenue_baseline'] = 'sum'
+                
+            if 'energy_revenue_pln' in intervals_df.columns:
+                agg_dict['energy_revenue_pln'] = 'sum'
+                
+            if 'total_revenue_pln' in intervals_df.columns:
+                agg_dict['total_revenue_pln'] = 'sum'
+                
+            if 'capacity_acceptance_prob' in intervals_df.columns:
+                agg_dict['capacity_acceptance_prob'] = 'mean'
+                
+            if 'capacity_price_pln_per_mw_h' in intervals_df.columns:
+                agg_dict['capacity_price_pln_per_mw_h'] = 'mean'
+                
+            if 'energy_price_pln_per_mwh' in intervals_df.columns:
+                agg_dict['energy_price_pln_per_mwh'] = 'mean'
+            
+            if agg_dict:  # Only proceed if we have columns to aggregate
+                daily_agg = intervals_df.groupby('date').agg(agg_dict).round(2)
+            
+            daily_report = {
+                "report_type": "daily_aggregated_results",
+                "generated_at": datetime.now().isoformat(),
+                "portfolio_mw": results.get("portfolio_mw", 0),
+                "model_parameters": clean_for_json(params),
+                "daily_results": []
+            }
+            
+            # Build daily results with PSE-aligned field semantics
+            for date, row in daily_agg.iterrows():
+                day_result = {"business_date": date}
+                
+                # Add available columns with PSE-aligned names
+                if 'capacity_revenue_capped' in row:
+                    day_result["afrr_capacity_revenue_pln"] = clean_for_json(row['capacity_revenue_capped'])
+                elif 'capacity_revenue_baseline' in row:
+                    day_result["afrr_capacity_revenue_pln"] = clean_for_json(row['capacity_revenue_baseline'])
+                    
+                if 'energy_revenue_pln' in row:
+                    day_result["ceb_energy_revenue_pln"] = clean_for_json(row['energy_revenue_pln'])
+                    
+                if 'total_revenue_pln' in row:
+                    day_result["total_afrr_revenue_pln"] = clean_for_json(row['total_revenue_pln'])
+                    
+                if 'capacity_acceptance_prob' in row:
+                    day_result["avg_capacity_acceptance_prob"] = clean_for_json(row['capacity_acceptance_prob'])
+                    
+                if 'capacity_price_pln_per_mw_h' in row:
+                    day_result["avg_afrr_capacity_price_pln_per_mw_h"] = clean_for_json(row['capacity_price_pln_per_mw_h'])
+                    
+                if 'energy_price_pln_per_mwh' in row:
+                    day_result["avg_ceb_balancing_price_pln_per_mwh"] = clean_for_json(row['energy_price_pln_per_mwh'])
+                
+                day_result["intervals_count"] = int(intervals_df[intervals_df['date'] == date].shape[0])
+                day_result["hours_coverage"] = round(intervals_df[intervals_df['date'] == date].shape[0] * 0.25, 2)
+                
+                daily_report["daily_results"].append(day_result)
+                
+            daily_file = f"outputs/{prefix}_daily_results.json"
+            with open(daily_file, 'w', encoding='utf-8') as f:
+                json.dump(daily_report, f, indent=2, ensure_ascii=False)
+                
+            output_files["daily"] = {
+                "name": "Daily Results (JSON)",
+                "path": f"/outputs/{prefix}_daily_results.json"
+            }
+            
+    except Exception as e:
+        print(f"Error generating daily report: {e}")
     
     return output_files
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    # Check if auto data exists
-    auto_data_available = all([
-        Path("pse_processed_auto/afrr_prices.csv").exists(),
-        Path("pse_processed_auto/afrr_volumes.csv").exists()
-    ])
+    # Redirect to the two-bids page (the main functionality)
+    return RedirectResponse(url="/two-bids", status_code=302)
+
+@app.post("/fetch-data")
+async def trigger_data_fetch(
+    background_tasks: BackgroundTasks,
+    start_date: str = Form(default="2024-07-01"),
+    end_date: str = Form(default="2025-06-30")
+):
+    """Trigger PSE data fetching in background."""
+    global fetch_status
     
-    return templates.TemplateResponse("index.html", {
-        "request": request, 
-        "summary": None, 
-        "chart": None, 
-        "download_files": None,
-        "auto_data_available": auto_data_available,
-        "fetch_status": fetch_status
-    })
+    if fetch_status["status"] == "fetching":
+        return JSONResponse({"error": "Data fetch already in progress"}, status_code=400)
+    
+    # Reset fetch status
+    fetch_status = {"status": "fetching", "progress": 0, "message": "Starting data fetch..."}
+    
+    # Add background task to fetch data
+    background_tasks.add_task(run_data_fetch, start_date, end_date)
+    
+    return JSONResponse({"message": "Data fetch started", "status": "initiated"})
+
+@app.get("/fetch-status")
+async def get_fetch_status():
+    """Get current status of data fetching."""
+    return JSONResponse(fetch_status)
+
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    # Redirect to the two-bids page (the main functionality)
+    return RedirectResponse(url="/two-bids", status_code=302)
 
 @app.post("/fetch-data")
 async def trigger_data_fetch(
@@ -302,177 +529,7 @@ async def get_fetch_status():
     """Get current status of data fetching."""
     return JSONResponse(fetch_status)
 
-@app.post("/run", response_class=HTMLResponse)
-async def run_analysis(
-    request: Request,
-    # Bidding parameters
-    portfolio_mw: float = Form(50.0, description="Portfolio size (MW)"),
-    bidding_mode: str = Form("single", description="Bidding mode: single or banded"),
-    single_K: float = Form(400.0, description="Single bid level (PLN/MW-h)"),
-    bands_input: str = Form("", description="Banded bids: v1:K1,v2:K2,..."),
-    
-    # Model parameters
-    model_mode: str = Form("parametric", description="Model: parametric or empirical"),
-    ridge: float = Form(1.0, description="Ridge regularization parameter"),
-    
-    # Energy leg parameters (optional)
-    enable_energy_leg: bool = Form(False, description="Enable energy leg analysis"),
-    theta_values: str = Form("0.005,0.01,0.02,0.05", description="Theta values (comma-separated)"),
-    risk_uplift: float = Form(0.15, description="Risk uplift factor"),
-    
-    # Output parameters
-    out_prefix: str = Form("web_valuation", description="Output file prefix"),
-    use_auto_data: bool = Form(True, description="Use automatically fetched PSE data")
-):
-    """Run complete aFRR-down two-leg valuation analysis."""
-    
-    try:
-        if use_auto_data:
-            # Load automatically fetched PSE data
-            try:
-                prices_df, vols_df, preds_df = load_auto_data()
-                
-                # Fixed column names for auto data
-                prices_dt_col = "dt"
-                prices_col = "price_pln_per_mw_h"
-                prices_unit = "per_mw_h"
-                vols_dt_col = "dt" 
-                vols_mw_col = "mw_procured"
-                pred_dt_col = "dt"
-                pred_cols_list = []
-                
-                if preds_df is not None:
-                    # Get available predictor columns
-                    available_predictors = [col for col in ["CEN", "COR", "CSDAC", "SK", "CEB_SR"] 
-                                          if col in preds_df.columns]
-                    pred_cols_list = available_predictors
-                
-            except ValueError as e:
-                auto_data_available = False
-                return templates.TemplateResponse("index.html", {
-                    "request": request,
-                    "error": f"Auto data not available: {str(e)}. Please fetch data first.",
-                    "summary": None, 
-                    "chart": None,
-                    "download_files": None,
-                    "auto_data_available": auto_data_available,
-                    "fetch_status": fetch_status
-                })
-        else:
-            # This path is no longer used but kept for compatibility
-            return templates.TemplateResponse("index.html", {
-                "request": request,
-                "error": "Manual file upload is not supported. Please use automatic PSE data fetching.",
-                "summary": None,
-                "chart": None, 
-                "download_files": None,
-                "auto_data_available": False,
-                "fetch_status": fetch_status
-            })
-        
-        # Parse bidding parameters
-        bids = None
-        single_K_param = None
-        
-        if bidding_mode == "single":
-            single_K_param = single_K
-        elif bidding_mode == "banded" and bands_input.strip():
-            try:
-                bids = []
-                for band in bands_input.split(','):
-                    band = band.strip()
-                    if ':' in band:
-                        fraction_str, bid_str = band.split(':', 1)
-                        bids.append((float(fraction_str), float(bid_str)))
-                if not bids:
-                    single_K_param = single_K  # Fallback to single
-            except ValueError:
-                single_K_param = single_K  # Fallback to single on parse error
-        else:
-            single_K_param = single_K  # Fallback to single
-        
-        # Parse theta values for energy leg
-        theta_list = None
-        if enable_energy_leg and theta_values.strip():
-            try:
-                theta_list = [float(x.strip()) for x in theta_values.split(',')]
-            except ValueError:
-                theta_list = [0.005, 0.01, 0.02, 0.05]  # Default values
-        
-        # Run new aFRR valuation
-        results = value_afrr_down(
-            # Capacity price & volumes
-            df_cap=prices_df, dt_col_cap=prices_dt_col, price_col_cap=prices_col, price_unit=prices_unit,
-            df_vol=vols_df, dt_col_vol=vols_dt_col, mw_col_vol=vols_mw_col,
-            
-            # Predictors
-            df_pred=preds_df, dt_col_pred=pred_dt_col, pred_cols=pred_cols_list,
-            ridge_lambda=ridge, model_mode=model_mode,
-            
-            # Bids
-            portfolio_mw=portfolio_mw, bids=bids, single_K=single_K_param,
-            
-            # Energy leg (optional - we'll implement this later)
-            theta_list=theta_list if enable_energy_leg else None,
-            risk_uplift=risk_uplift,
-            
-            return_intervals=True
-        )
-        
-        # Extract data for template compatibility
-        intervals_df = results.get('intervals_df')
-        summary = results  # Use full results as summary
-        chart_data = results.get('chart_data', {})
-        
-        # Save outputs and create download links
-        download_files = save_outputs(results, out_prefix)
-        
-        # Check auto data availability for template
-        auto_data_available = all([
-            Path("pse_processed_auto/afrr_prices.csv").exists(),
-            Path("pse_processed_auto/afrr_volumes.csv").exists()
-        ])
-        
-        return templates.TemplateResponse("index.html", {
-            "request": request,
-            "summary": summary,
-            "chart": chart_data,
-            "download_files": download_files,
-            "auto_data_available": auto_data_available,
-            "fetch_status": fetch_status,
-            "params": {
-                "portfolio_mw": portfolio_mw,
-                "bidding_mode": bidding_mode,
-                "single_K": single_K_param or single_K,
-                "bands_input": bands_input,
-                "model_mode": model_mode,
-                "ridge": ridge,
-                "enable_energy_leg": enable_energy_leg,
-                "theta_values": theta_values,
-                "pred_cols": ",".join(pred_cols_list) if pred_cols_list else "",
-                "out_prefix": out_prefix
-            }
-        })
-
-    except Exception as e:
-        error_msg = f"Analysis failed: {str(e)}"
-        print(error_msg)  # Log to console
-        
-        # Check auto data availability for template
-        auto_data_available = all([
-            Path("pse_processed_auto/afrr_prices.csv").exists(),
-            Path("pse_processed_auto/afrr_volumes.csv").exists()
-        ])
-        
-        return templates.TemplateResponse("index.html", {
-            "request": request,
-            "error": error_msg,
-            "summary": None, 
-            "chart": None,
-            "download_files": None,
-            "auto_data_available": auto_data_available,
-            "fetch_status": fetch_status
-        })
+# Old single-bid route removed - redirecting everything to two-bids mode
 
 @app.post("/run-two-bids", response_class=HTMLResponse)
 async def run_two_bids_analysis(
@@ -545,16 +602,50 @@ async def run_two_bids_analysis(
             except:
                 pred_cols_list = []
         
-        # Load energy data if available
+        # Load PSE energy price data (CEB balancing prices)
         energy_df = None
-        energy_file = Path("synthetic_energy_prices.csv")
+        energy_file = Path("pse_data_js/energy_prices.json")
         if energy_file.exists():
-            energy_df = pd.read_csv(energy_file)
+            try:
+                import json
+                with open(energy_file, 'r') as f:
+                    energy_data = json.load(f)
+                
+                # Convert to DataFrame with proper columns for the model
+                energy_records = []
+                for record in energy_data:
+                    energy_records.append({
+                        'dt': record['dtime_utc'],  # Use UTC datetime
+                        'S_bal': record['ceb_sr_cost']  # Use CEB średnia (average) price
+                    })
+                
+                energy_df = pd.DataFrame(energy_records)
+                energy_df['dt'] = pd.to_datetime(energy_df['dt'])
+                print(f"✅ Loaded PSE energy price data: {len(energy_df)} records")
+                print(f"   Energy price range: {energy_df['S_bal'].min():.2f} - {energy_df['S_bal'].max():.2f} PLN/MWh")
+                
+            except Exception as e:
+                print(f"⚠️ Error loading PSE energy data: {e}")
+                energy_df = None
+        else:
+            print("⚠️ No PSE energy price data found")
         
         # Ensure all form parameters are properly typed and not undefined
-        energy_pay_rule_safe = str(energy_pay_rule) if energy_pay_rule else "difference"
-        theta_safe = float(theta) if theta is not None else 0.01
-        single_K_energy_safe = float(single_K_energy) if single_K_energy is not None else 0.0
+        def safe_convert(value, default, converter=str):
+            """Safely convert form values, handling Undefined objects."""
+            try:
+                if value is None:
+                    return default
+                # Check for Jinja2 Undefined objects
+                if hasattr(value, '__class__') and 'Undefined' in str(type(value)):
+                    return default
+                return converter(value)
+            except:
+                return default
+        
+        energy_pay_rule_safe = safe_convert(energy_pay_rule, "difference", str)
+        theta_safe = safe_convert(theta, 0.01, float)
+        single_K_energy_safe = safe_convert(single_K_energy, 0.0, float)
         
         # Run two-bid valuation with debugging
         try:
@@ -570,8 +661,9 @@ async def run_two_bids_analysis(
                 # Capacity bids
                 portfolio_mw=portfolio_mw, cap_bands=cap_bands, single_K_cap=single_K_cap_param,
                 
-                # Energy bid
-                df_energy=energy_df, single_K_energy=single_K_energy_safe, 
+                # Energy bid (PSE CEB balancing prices)
+                df_energy=energy_df, dt_eng="dt", col_energy="S_bal",
+                single_K_energy=single_K_energy_safe, 
                 energy_pay_rule=energy_pay_rule_safe, theta=theta_safe,
                 
                 return_intervals=return_intervals
@@ -582,42 +674,72 @@ async def run_two_bids_analysis(
             print(f"Energy params: K_energy={single_K_energy_safe}, pay_rule={energy_pay_rule_safe}, theta={theta_safe}")
             raise
         
-        # Save outputs and create download links - temporarily disabled for debugging
-        download_files = {}
-        try:
-            download_files = save_outputs(results, out_prefix)
-        except Exception as e:
-            print(f"Error in save_outputs: {e}")
-            print(f"Results keys: {list(results.keys())}")
-            # Continue without download files
-        
         # Check auto data availability for template
         auto_data_available = all([
             Path("pse_processed_auto/afrr_prices.csv").exists(),
             Path("pse_processed_auto/afrr_volumes.csv").exists()
         ])
         
-        return templates.TemplateResponse("two_bids.html", {
-            "request": request,
-            "summary": results,
-            "chart": results.get('chart_data', {}),
-            "download_files": download_files,
-            "auto_data_available": auto_data_available,
-            "fetch_status": fetch_status,
-            "params": {
-                "portfolio_mw": portfolio_mw,
-                "cap_bidding_mode": cap_bidding_mode,
-                "single_K_cap": single_K_cap_param or single_K_cap,
-                "cap_bands_input": cap_bands_input,
-                "single_K_energy": single_K_energy,
-                "energy_pay_rule": energy_pay_rule,
-                "theta": theta,
-                "cap_model": cap_model,
-                "ridge_lambda": ridge_lambda,
-                "pred_cols_input": pred_cols_input,
-                "out_prefix": out_prefix
+        # Clean all params to prevent Undefined objects
+        clean_params = {
+            "portfolio_mw": safe_convert(portfolio_mw, 50.0, float),
+            "cap_bidding_mode": safe_convert(cap_bidding_mode, "single", str),
+            "single_K_cap": safe_convert(single_K_cap_param or single_K_cap, 250.0, float),
+            "cap_bands_input": safe_convert(cap_bands_input, "", str),
+            "single_K_energy": safe_convert(single_K_energy, -50.0, float),
+            "energy_pay_rule": safe_convert(energy_pay_rule, "difference", str),
+            "theta": safe_convert(theta, 0.01, float),
+            "cap_model": safe_convert(cap_model, "parametric", str),
+            "ridge_lambda": safe_convert(ridge_lambda, 1.0, float),
+            "pred_cols_input": safe_convert(pred_cols_input, "", str),
+            "out_prefix": safe_convert(out_prefix, "two_bids", str)
+        }
+        
+        # Generate comprehensive JSON reports
+        download_files = {}
+        try:
+            download_files = generate_json_reports(results, clean_params, out_prefix)
+            print(f"✅ Generated JSON reports: {list(download_files.keys())}")
+        except Exception as e:
+            print(f"⚠️ Error generating reports: {e}")
+            # Continue without download files
+        
+        # Test with cleaned results dictionary
+        cleaned_summary = {}
+        try:
+            # Only include basic numeric results for template
+            cleaned_summary = {
+                "total_capacity_revenue_pln": results.get("total_capacity_revenue_pln", 0),
+                "total_energy_revenue_pln": results.get("total_energy_revenue_pln", 0),
+                "total_revenue_pln": results.get("total_revenue_pln", 0),
+                "per_mw_revenue_pln": results.get("per_mw_revenue_pln", 0),
+                "avg_capacity_acceptance_prob": results.get("avg_capacity_acceptance_prob", 0),
+                "bound_intervals_pct": results.get("bound_intervals_pct", 0),
+                "portfolio_mw": results.get("portfolio_mw", 50),
+                "cap_model": results.get("cap_model", "parametric"),
+                "total_intervals": results.get("total_intervals", 0),
+                "energy_pay_rule": results.get("energy_pay_rule", "difference"),
+                "K_energy": results.get("K_energy", 0),
+                "theta": results.get("theta", 0.01),
+                "expected_energy_activations": results.get("expected_energy_activations", 0),
+                "avg_energy_payoff_per_mwh": results.get("avg_energy_payoff_per_mwh", 0),
+                "capacity_bid_stats": []  # Disable for now
             }
-        })
+            print(f"Using cleaned summary with keys: {list(cleaned_summary.keys())}")
+            
+            return templates.TemplateResponse("two_bids.html", {
+                "request": request,
+                "summary": cleaned_summary,
+                "chart": None,  # Temporarily disable charts to show energy results
+                "download_files": download_files,
+                "auto_data_available": True,
+                "fetch_status": None,
+                "params": clean_params
+            })
+        except Exception as template_error:
+            print(f"Template rendering error: {template_error}")
+            print(f"Summary keys: {list(cleaned_summary.keys()) if cleaned_summary else 'None'}")
+            raise template_error
         
     except Exception as e:
         error_msg = f"Two-bid analysis failed: {str(e)}"
@@ -636,7 +758,8 @@ async def run_two_bids_analysis(
             "chart": None,
             "download_files": None,
             "auto_data_available": auto_data_available,
-            "fetch_status": fetch_status
+            "fetch_status": fetch_status,
+            "params": None  # Ensure params is always defined
         })
 
 @app.get("/two-bids", response_class=HTMLResponse)
@@ -654,7 +777,8 @@ async def two_bids_page(request: Request):
         "chart": None,
         "download_files": None,
         "auto_data_available": auto_data_available,
-        "fetch_status": fetch_status
+        "fetch_status": fetch_status,
+        "params": None  # Ensure params is always defined
     })
 
 @app.get("/health")

@@ -163,20 +163,24 @@ async function main() {
     let totalRecords = 0;
     
     try {
-        // Try the comprehensive energy-prices endpoint first
+        // Fetch the four required datasets with pagination
+        console.log('Fetching all required PSE datasets...');
+        
+        // 1. Energy/balancing prices (CEB średnia)
         totalRecords += await fetchDataset('energy-prices', 'pse_data_js/energy_prices.json', startDate, endDate);
         
-        // If that doesn't work, try individual endpoints
-        if (totalRecords === 0) {
-            console.log('\nTrying individual endpoints...');
-            totalRecords += await fetchDataset('cmbu-tu', 'pse_data_js/cmbu_tu.json', startDate, endDate);
-            totalRecords += await fetchDataset('zmb', 'pse_data_js/zmb.json', startDate, endDate);  
-            totalRecords += await fetchDataset('price-cost', 'pse_data_js/price_cost.json', startDate, endDate);
-            totalRecords += await fetchDataset('csdac-pln', 'pse_data_js/csdac_pln.json', startDate, endDate);
-        }
+        // 2. aFRR volumes (MBP-TP afrr_d field)
+        totalRecords += await fetchDataset('mbp-tp', 'pse_data_js/afrr_volumes_mbp.json', startDate, endDate);
+        
+        // 3. Total costs (KMB-KRO-ROZL)
+        totalRecords += await fetchDataset('kmb-kro-rozl', 'pse_data_js/total_costs.json', startDate, endDate);
+        
+        // 4. aFRR marginal prices (CMBU-TU)
+        totalRecords += await fetchDataset('cmbu-tu', 'pse_data_js/afrr_marginal_prices.json', startDate, endDate);
         
         console.log(`\n=== SUMMARY ===`);
         console.log(`Total records downloaded: ${totalRecords}`);
+        console.log('All PSE datasets downloaded with full pagination handling');
         
     } catch (error) {
         console.error('Error during data fetch:', error.message);
