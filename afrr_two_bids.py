@@ -24,11 +24,108 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm
 
-# Reuse utility functions from existing code
-from valuation_core import (
-    read_any, to_dt_utc, infer_interval_hours, align_to_quarter, 
-    normalize_price_units, design_matrix, fit_ridge
-)
+# Utility functions (previously in valuation_core.py)
+def read_any(path_or_df) -> pd.DataFrame:
+    """Read data from various file formats or return DataFrame if already one."""
+    if isinstance(path_or_df, pd.DataFrame):
+        return path_or_df
+    
+    path = str(path_or_df)
+    ext = Path(path).suffix.lower()
+    if ext in (".csv", ".txt"):
+        return pd.read_csv(path)
+    if ext in (".xlsx", ".xls"):
+        return pd.read_excel(path, sheet_name=0, engine="openpyxl")
+    if ext == ".json":
+        with open(path, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+        if isinstance(raw, list):
+            return pd.DataFrame(raw)
+        if isinstance(raw, dict):
+            k = next((k for k, v in raw.items()
+                      if isinstance(v, list) and v and isinstance(v[0], dict)), None)
+            return pd.DataFrame.from_dict(raw[k]) if k else pd.DataFrame.from_dict(raw)
+    raise ValueError(f"Unsupported file type: {ext}")
+
+def to_dt_utc(s: pd.Series) -> pd.Series:
+    """Convert series to UTC datetime, handling errors gracefully."""
+    s = pd.to_datetime(s, errors="coerce", utc=True)
+    if s.isna().all():
+        raise ValueError("Could not parse datetimes.")
+    return s
+
+def infer_interval_hours(dt_index: pd.DatetimeIndex) -> float:
+    """Infer the time interval in hours from a datetime index."""
+    if len(dt_index) < 2:
+        return 0.25
+    diffs = pd.Series(dt_index).diff().dropna().dt.total_seconds() / 3600.0
+    return float(np.median(diffs)) if len(diffs) else 0.25
+
+def align_to_quarter(df: pd.DataFrame, dt_col: str, value_cols) -> pd.DataFrame:
+    """Align an arbitrary time series to a 15-min grid via step hold (ffill)."""
+    z = df.copy()
+    z = z.dropna(subset=[dt_col])
+    z[dt_col] = to_dt_utc(z[dt_col])
+    z = z.sort_values(dt_col).set_index(dt_col)
+    
+    full_idx = pd.date_range(
+        z.index.min().floor("15min"), 
+        z.index.max().ceil("15min"), 
+        freq="15min", 
+        tz="UTC"
+    )
+    z = z.reindex(full_idx).ffill()
+    z.index.name = "dt"
+    
+    keep = [c for c in value_cols if c in z.columns]
+    return z[keep].reset_index()
+
+def normalize_price_units(df: pd.DataFrame, price_col: str, series_interval_h: float, price_unit: str) -> pd.Series:
+    """Normalize price series to PLN/MW-h units."""
+    series = df[price_col].copy()
+    
+    if price_unit == "per_mw_interval":
+        if series_interval_h <= 0:
+            series_interval_h = 0.25
+        series = series / series_interval_h
+    elif price_unit == "auto":
+        pass  # Assume per_mw_h
+    
+    return series
+
+def design_matrix(df: pd.DataFrame, pred_cols):
+    """Build design matrix for ridge regression with intercept."""
+    if not pred_cols:
+        X = np.ones((len(df), 1))
+        used_cols = ["intercept"]
+    else:
+        avail_cols = [c for c in pred_cols if c in df.columns]
+        if not avail_cols:
+            X = np.ones((len(df), 1))
+            used_cols = ["intercept"]
+        else:
+            pred_data = df[avail_cols].fillna(0).values
+            X = np.column_stack([np.ones(len(df)), pred_data])
+            used_cols = ["intercept"] + avail_cols
+    
+    return X, used_cols
+
+def fit_ridge(X: np.ndarray, y: np.ndarray, ridge_alpha: float = 1.0):
+    """Fit ridge regression: β = (X'X + αI)^(-1) X'y."""
+    try:
+        XtX = X.T @ X
+        XtX += ridge_alpha * np.eye(XtX.shape[0])
+        beta = np.linalg.solve(XtX, X.T @ y)
+        
+        y_pred = X @ beta
+        residuals = y - y_pred
+        sigma = np.std(residuals, ddof=len(beta)) if len(residuals) > len(beta) else 1.0
+        
+        return beta, max(sigma, 0.01)
+    except Exception:
+        beta = np.array([np.mean(y)])
+        sigma = max(np.std(y, ddof=1), 0.01)
+        return beta, sigma
 
 
 class CapacityLegModel:
