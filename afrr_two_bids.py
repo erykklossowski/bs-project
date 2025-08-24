@@ -1136,7 +1136,35 @@ def value_afrr_down_two_bids(
 
         # Add energy data if available
         if "energy_revenue" in final_df.columns:
-            s_bal_data = safe_series_to_list(final_df.get(col_energy, pd.Series([0] * len(final_df))))
+            # Get energy prices from original df_energy, not final_df
+            if df_energy is not None and col_energy is not None:
+                # Merge energy prices into final_df for chart display
+                energy_chart_data = df_energy[[dt_eng, col_energy]].copy()
+                energy_chart_data = energy_chart_data.rename(columns={dt_eng: "dt", col_energy: "S_bal_price"})
+                energy_chart_data["dt"] = pd.to_datetime(energy_chart_data["dt"])
+                
+                # Ensure timezone consistency for merge
+                try:
+                    if final_df["dt"].dt.tz is not None:
+                        if energy_chart_data["dt"].dt.tz is None:
+                            energy_chart_data["dt"] = energy_chart_data["dt"].dt.tz_localize('UTC')
+                    else:
+                        if energy_chart_data["dt"].dt.tz is not None:
+                            energy_chart_data["dt"] = energy_chart_data["dt"].dt.tz_localize(None)
+                except Exception as e:
+                    print(f"Warning: Timezone handling error: {e}")
+                    # Fallback: convert both to naive datetime
+                    if final_df["dt"].dt.tz is not None:
+                        final_df["dt"] = final_df["dt"].dt.tz_localize(None)
+                    if energy_chart_data["dt"].dt.tz is not None:
+                        energy_chart_data["dt"] = energy_chart_data["dt"].dt.tz_localize(None)
+                
+                # Merge with final_df on datetime
+                final_df_with_energy = pd.merge(final_df, energy_chart_data, on="dt", how="left")
+                s_bal_data = safe_series_to_list(final_df_with_energy.get("S_bal_price", pd.Series([0] * len(final_df))))
+            else:
+                s_bal_data = [0] * len(final_df)
+            
             p_energy_data = safe_series_to_list(final_df.get("p_energy", pd.Series([0] * len(final_df))))
 
             results["chart_data"].update({

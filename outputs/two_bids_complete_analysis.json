@@ -1,6 +1,6 @@
 {
   "report_type": "complete_analysis_summary",
-  "generated_at": "2025-08-24T18:03:23.632662",
+  "generated_at": "2025-08-24T21:17:56.493363",
   "model_parameters": {
     "portfolio_mw": 50.0,
     "cap_bidding_mode": "single",
@@ -11,15 +11,18 @@
     "theta": 0.01,
     "cap_model": "parametric",
     "ridge_lambda": 1.0,
-    "pred_cols_input": "",
-    "out_prefix": "two_bids"
+    "pred_cols_input": "CEN,COR,SK",
+    "out_prefix": "two_bids",
+    "capacity_factor": 0.3,
+    "seasonal_cf_variation": true,
+    "availability_haircut": 0.95
   },
   "total_results": {
     "portfolio_mw": 50.0,
-    "total_capacity_revenue_pln": 18943723.638280705,
-    "total_energy_revenue_pln": 365127.6173961876,
-    "total_revenue_pln": 19308851.255676895,
-    "per_mw_revenue_pln": 386177.0251135379,
+    "total_capacity_revenue_pln": 5463842.802233467,
+    "total_energy_revenue_pln": 292102.0939169501,
+    "total_revenue_pln": 5755944.896150417,
+    "per_mw_revenue_pln": 115118.89792300834,
     "avg_capacity_acceptance_prob": 0.1887710304312522,
     "bound_intervals_pct": 24.080592999627946,
     "total_intervals": 34941,
@@ -34999,8 +35002,8 @@
     "K_energy": -50.0,
     "energy_pay_rule": "difference",
     "theta": 0.01,
-    "energy_pln_portfolio": 365127.6173961876,
-    "energy_pln_perMW": 7302.552347923753,
+    "energy_pln_portfolio": 292102.0939169501,
+    "energy_pln_perMW": 5842.041878339002,
     "avg_payoff_per_MWh": 471.6326985489826
   },
   "data_sources": {
@@ -35008,5 +35011,58 @@
     "pse_volumes": "PSE procurement volumes",
     "pse_energy_prices": "PSE CEB balancing energy prices (średnia)",
     "predictors": "PSE market predictors (CEN, COR, SK, etc.)"
+  },
+  "wind_bsp_analysis": {
+    "capacity_factor_analysis": {
+      "mean_cf": 0.2895464926590538,
+      "std_cf": 0.06013933490506972,
+      "min_cf": 0.22799999999999998,
+      "max_cf": 0.3705,
+      "percentiles": {
+        "5": 0.22799999999999998,
+        "25": 0.22799999999999998,
+        "50": 0.2565,
+        "75": 0.34199999999999997,
+        "95": 0.3705
+      },
+      "seasonal_patterns": {
+        "mean": {
+          "1": 0.3705,
+          "2": 0.3705,
+          "3": 0.2565,
+          "4": 0.2565,
+          "5": 0.2565,
+          "6": 0.22799999999999998,
+          "7": 0.22799999999999998,
+          "8": 0.22799999999999998,
+          "9": 0.228,
+          "10": 0.34199999999999997,
+          "11": 0.34199999999999997,
+          "12": 0.3705
+        },
+        "std": {
+          "1": 0.0,
+          "2": 0.0,
+          "3": 0.0,
+          "4": 0.0,
+          "5": 0.0,
+          "6": 0.0,
+          "7": 0.0,
+          "8": 0.0,
+          "9": 0.0,
+          "10": 0.0,
+          "11": 0.0,
+          "12": 0.0
+        }
+      },
+      "avg_deliverable_mw": 14.477324632952692,
+      "capacity_utilization": 1.0
+    },
+    "risk_analysis": {},
+    "deliverability_constraints": {
+      "capacity_factor": 0.3,
+      "seasonal_cf_variation": true,
+      "availability_haircut": 0.95
+    }
   }
 }

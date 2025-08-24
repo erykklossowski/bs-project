@@ -99,6 +99,153 @@ async def fetch_pse_data(start_date: str, end_date: str):
         fetch_status = {"status": "error", "progress": 0, "message": f"Error: {str(e)}"}
         raise HTTPException(status_code=500, detail=f"Data fetch failed: {str(e)}")
 
+def prepare_enhanced_chart_data(results, intervals_data=None):
+    """Prepare enhanced chart data with aFRR prices, strategic bids, and wind BSP features."""
+    chart_data = {}
+    
+    try:
+        # Get basic chart data from results
+        if "chart_data" in results and results["chart_data"]:
+            chart_base = results["chart_data"]
+            
+            # Time series data
+            chart_data["dt"] = chart_base.get("dt", [])
+            chart_data["capacity_price_pln_per_mw_h"] = chart_base.get("S_cap", [])
+            chart_data["capacity_acceptance_prob"] = chart_base.get("p_cap", [])
+            chart_data["capacity_revenue_pln"] = chart_base.get("R_cap", [])
+            
+            # Energy leg data
+            energy_prices = chart_base.get("S_bal", [])
+            print(f"Debug: Energy prices from chart_base: {len(energy_prices)} items, first 3: {energy_prices[:3] if energy_prices else 'Empty'}")
+            chart_data["energy_price_pln_per_mwh"] = energy_prices
+            chart_data["energy_revenue_pln"] = chart_base.get("R_energy", [])
+            chart_data["energy_acceptance_prob"] = chart_base.get("p_energy", [])
+            
+            # Strategic bid lines and revenue confidence intervals
+            K_cap_values = results.get("K_cap_values", [])
+            K_energy = results.get("K_energy", 0)
+            
+            if K_cap_values and len(chart_data["dt"]) > 0:
+                # Use the primary K_cap value for comparison
+                primary_K_cap = K_cap_values[0] if isinstance(K_cap_values, list) else K_cap_values
+                chart_data["K_cap_line"] = [primary_K_cap] * len(chart_data["dt"])
+                
+                # Calculate revenue confidence intervals based on capacity factor and technical availability
+                capacity_revenues = chart_data.get("capacity_revenue_pln", [])
+                if capacity_revenues and len(capacity_revenues) > 0:
+                    # Calculate confidence intervals for revenue expectations
+                    cf_uncertainty = 0.15  # 15% capacity factor variability
+                    technical_availability = 0.10  # 10% technical availability uncertainty
+                    
+                    revenue_upper = [r * (1 + cf_uncertainty + technical_availability) for r in capacity_revenues]
+                    revenue_lower = [r * (1 - cf_uncertainty - technical_availability) for r in capacity_revenues]
+                    
+                    chart_data["capacity_revenue_upper"] = revenue_upper
+                    chart_data["capacity_revenue_lower"] = revenue_lower
+            
+            if K_energy and len(chart_data["dt"]) > 0:
+                chart_data["K_energy_line"] = [K_energy] * len(chart_data["dt"])
+                
+                # Calculate energy revenue confidence intervals
+                energy_revenues = chart_data.get("energy_revenue_pln", [])
+                if energy_revenues and len(energy_revenues) > 0:
+                    # Revenue uncertainty due to activation probability and balancing price volatility
+                    theta_uncertainty = 0.20  # 20% activation probability uncertainty
+                    price_impact = 0.15  # 15% impact of balancing price volatility on revenue
+                    
+                    energy_revenue_upper = [r * (1 + theta_uncertainty + price_impact) for r in energy_revenues]
+                    energy_revenue_lower = [max(0, r * (1 - theta_uncertainty - price_impact)) for r in energy_revenues]
+                    
+                    chart_data["energy_revenue_upper"] = energy_revenue_upper
+                    chart_data["energy_revenue_lower"] = energy_revenue_lower
+            
+            # Total revenue
+            if chart_data.get("capacity_revenue_pln") and chart_data.get("energy_revenue_pln"):
+                cap_rev = chart_data["capacity_revenue_pln"]
+                eng_rev = chart_data["energy_revenue_pln"]
+                chart_data["total_revenue_pln"] = [c + e for c, e in zip(cap_rev, eng_rev)]
+            
+        # Wind BSP capacity factor data
+        if "capacity_factor_analysis" in results and results["capacity_factor_analysis"]:
+            cf_analysis = results["capacity_factor_analysis"]
+            
+            # Seasonal capacity factor pattern
+            chart_data["seasonal_cf_pattern"] = {
+                "months": list(range(1, 13)),
+                "multipliers": [1.3, 1.3, 0.9, 0.9, 0.9, 0.8, 0.8, 0.8, 0.8, 1.2, 1.2, 1.3],  # Seasonal pattern
+                "labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+            }
+            
+            # Capacity factor statistics
+            chart_data["cf_percentiles"] = cf_analysis.get("percentiles", {})
+            chart_data["cf_mean"] = cf_analysis.get("mean_cf", 0.3)
+            
+        # Risk assessment data
+        if "risk_analysis" in results and results["risk_analysis"]:
+            risk_data = results["risk_analysis"]
+            
+            if "percentiles" in risk_data:
+                percentiles = risk_data["percentiles"]
+                chart_data["revenue_risk"] = {
+                    "percentiles": ["P5", "P10", "P25", "P50", "P75", "P90", "P95"],
+                    "values": [
+                        percentiles.get("P5", 0),
+                        percentiles.get("P10", 0),
+                        percentiles.get("P25", 0),
+                        percentiles.get("P50", 0),
+                        percentiles.get("P75", 0),
+                        percentiles.get("P90", 0),
+                        percentiles.get("P95", 0)
+                    ]
+                }
+            
+            # VaR and CVaR data
+            chart_data["risk_metrics"] = {
+                "var_95": risk_data.get("var_95", 0),
+                "cvar_95": risk_data.get("cvar_95", 0),
+                "var_99": risk_data.get("var_99", 0),
+                "cvar_99": risk_data.get("cvar_99", 0),
+                "mean_annual": risk_data.get("mean_annual_revenue", 0),
+                "historical_annual": risk_data.get("historical_annual", 0)
+            }
+            
+        # Deliverability constraints data
+        if "deliverability_constraints" in results:
+            delivery_data = results["deliverability_constraints"]
+            chart_data["delivery_constraints"] = {
+                "capacity_factor": delivery_data.get("capacity_factor", 1.0),
+                "seasonal_enabled": delivery_data.get("seasonal_cf_variation", True),
+                "availability_haircut": delivery_data.get("availability_haircut", 1.0)
+            }
+            
+        # Monthly aggregated data for seasonal analysis
+        if intervals_data is not None and len(intervals_data) > 0:
+            # Group by month to show seasonal patterns
+            df_intervals = pd.DataFrame(intervals_data)
+            if 'dt' in df_intervals.columns:
+                df_intervals['dt'] = pd.to_datetime(df_intervals['dt'])
+                df_intervals['month'] = df_intervals['dt'].dt.month
+                
+                # Monthly averages
+                monthly_data = df_intervals.groupby('month').agg({
+                    'capacity_revenue_capped': 'sum',
+                    'mw_deliverable': 'mean' if 'mw_deliverable' in df_intervals.columns else 'count',
+                    'total_revenue': 'sum'
+                }).reset_index()
+                
+                chart_data["monthly_analysis"] = {
+                    "months": monthly_data['month'].tolist(),
+                    "capacity_revenue": monthly_data['capacity_revenue_capped'].tolist(),
+                    "deliverable_capacity": monthly_data.get('mw_deliverable', []).tolist() if 'mw_deliverable' in monthly_data.columns else [],
+                    "total_revenue": monthly_data['total_revenue'].tolist()
+                }
+        
+    except Exception as e:
+        print(f"Warning: Error preparing chart data: {e}")
+        chart_data = {"error": f"Chart preparation failed: {str(e)}"}
+    
+    return chart_data
+
 async def run_data_fetch(start_date: str, end_date: str):
     """Background task to run data fetching."""
     global fetch_status
@@ -337,6 +484,11 @@ def generate_json_reports(results: dict, params: dict, prefix: str = "two_bids")
                 "pse_volumes": "PSE procurement volumes", 
                 "pse_energy_prices": "PSE CEB balancing energy prices (średnia)",
                 "predictors": "PSE market predictors (CEN, COR, SK, etc.)"
+            },
+            "wind_bsp_analysis": {
+                "capacity_factor_analysis": clean_for_json(results.get("capacity_factor_analysis", {})),
+                "risk_analysis": clean_for_json(results.get("risk_analysis", {})),
+                "deliverability_constraints": clean_for_json(results.get("deliverability_constraints", {}))
             }
         }
         
@@ -602,6 +754,11 @@ async def run_two_bids_analysis(
     ridge_lambda: float = Form(1.0, description="Ridge regularization parameter"),
     pred_cols_input: str = Form("", description="Predictor columns (comma-separated)"),
     
+    # Wind BSP parameters
+    capacity_factor: float = Form(0.3, description="Base capacity factor"),
+    seasonal_cf_variation: bool = Form(True, description="Enable seasonal CF variations"),
+    availability_haircut: float = Form(0.95, description="Technical availability factor (estymata error/technical availability composite)"),
+    
     # Output parameters
     out_prefix: str = Form("two_bids", description="Output file prefix"),
     return_intervals: bool = Form(True, description="Return interval-level data")
@@ -718,6 +875,11 @@ async def run_two_bids_analysis(
                 single_K_energy=single_K_energy_safe, 
                 energy_pay_rule=energy_pay_rule_safe, theta=theta_safe,
                 
+                # Wind BSP parameters
+                capacity_factor=capacity_factor,
+                seasonal_cf_variation=seasonal_cf_variation,
+                availability_haircut=availability_haircut,
+                
                 return_intervals=return_intervals
             )
         except Exception as e:
@@ -745,7 +907,11 @@ async def run_two_bids_analysis(
             "cap_model": safe_convert(cap_model, "parametric", str),
             "ridge_lambda": safe_convert(ridge_lambda, 1.0, float),
             "pred_cols_input": safe_convert(pred_cols_input, "", str),
-            "out_prefix": safe_convert(out_prefix, "two_bids", str)
+            "out_prefix": safe_convert(out_prefix, "two_bids", str),
+            # Wind BSP parameters
+            "capacity_factor": safe_convert(capacity_factor, 0.3, float),
+            "seasonal_cf_variation": safe_convert(seasonal_cf_variation, True, bool),
+            "availability_haircut": safe_convert(availability_haircut, 0.95, float)
         }
         
         # Generate comprehensive JSON reports
@@ -757,10 +923,20 @@ async def run_two_bids_analysis(
             print(f"⚠️ Error generating reports: {e}")
             # Continue without download files
         
+        # Prepare enhanced chart data with wind BSP features
+        chart_data = None
+        try:
+            intervals_data = results.get("intervals", [])
+            chart_data = prepare_enhanced_chart_data(results, intervals_data)
+            print(f"✅ Prepared enhanced chart data with {len(chart_data)} sections")
+        except Exception as chart_error:
+            print(f"⚠️ Chart preparation error: {chart_error}")
+            chart_data = None
+        
         # Test with cleaned results dictionary
         cleaned_summary = {}
         try:
-            # Only include basic numeric results for template
+            # Include enhanced results for template
             cleaned_summary = {
                 "total_capacity_revenue_pln": results.get("total_capacity_revenue_pln", 0),
                 "total_energy_revenue_pln": results.get("total_energy_revenue_pln", 0),
@@ -776,14 +952,19 @@ async def run_two_bids_analysis(
                 "theta": results.get("theta", 0.01),
                 "expected_energy_activations": results.get("expected_energy_activations", 0),
                 "avg_energy_payoff_per_mwh": results.get("avg_energy_payoff_per_mwh", 0),
-                "capacity_bid_stats": []  # Disable for now
+                "capacity_bid_stats": [],  # Disable for now
+                
+                # Wind BSP enhancements
+                "capacity_factor_analysis": results.get("capacity_factor_analysis", {}),
+                "risk_analysis": results.get("risk_analysis", {}),
+                "deliverability_constraints": results.get("deliverability_constraints", {})
             }
             print(f"Using cleaned summary with keys: {list(cleaned_summary.keys())}")
             
             return templates.TemplateResponse("two_bids.html", {
                 "request": request,
                 "summary": cleaned_summary,
-                "chart": None,  # Temporarily disable charts to show energy results
+                "chart": chart_data,  # Enable enhanced charts
                 "download_files": download_files,
                 "auto_data_available": True,
                 "fetch_status": None,

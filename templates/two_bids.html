@@ -189,6 +189,26 @@
       </div>
     </fieldset>
 
+    <!-- Wind BSP Configuration -->
+    <fieldset>
+      <legend>💨 Wind BSP Constraints</legend>
+      <div class="grid">
+        <label>Base Capacity Factor <input name="capacity_factor" type="number" step="0.01" min="0" max="1" value="{{ params.capacity_factor if params else 0.3 }}" required> <span style="font-size:11px;">annual average</span></label>
+        <label>Technical Availability Factor <input name="availability_haircut" type="number" step="0.01" min="0" max="1" value="{{ params.availability_haircut if params else 0.95 }}" required> <span style="font-size:11px;">estymata error/technical availability composite</span></label>
+      </div>
+      <div class="grid">
+        <label>
+          <input type="checkbox" name="seasonal_cf_variation" id="seasonal_cf_variation" {{ 'checked' if (not params or params.seasonal_cf_variation) else '' }}>
+          Enable Seasonal Wind Patterns
+          <small style="display:block;color:#666;font-size:11px;">Higher CF in autumn/winter, lower in spring/summer</small>
+        </label>
+      </div>
+      
+      <div class="help-text" style="background:#d4f8d4; padding:10px; border-radius:4px; margin-top:10px;">
+        <strong>Wind BSP Features:</strong> Deliverable capacity = min(portfolio_MW, seasonal_CF × technical_availability × portfolio_MW). Seasonal patterns reflect Polish wind conditions with CVaR risk assessment using block bootstrap methodology.
+      </div>
+    </fieldset>
+
     <div class="help-text" style="background:#e7f3ff; padding:12px; border-radius:6px; margin:16px 0;">
       <strong>🔍 Two-Bid Model Architecture:</strong><br>
       • <strong>Capacity Revenue:</strong> K_cap × acceptance_prob(K_cap) × portfolio_MW × 0.25h<br>
@@ -282,6 +302,65 @@
     </div>
     {% endif %}
     
+    <!-- Wind BSP Analysis -->
+    {% if summary.capacity_factor_analysis or summary.risk_analysis or summary.deliverability_constraints %}
+    <div style="margin-top:20px;">
+      <h4>💨 Wind BSP Analysis</h4>
+      <div class="kvs">
+        {% if summary.capacity_factor_analysis %}
+          {% if summary.capacity_factor_analysis.avg_deliverable_mw %}
+          <div class="metric">
+            <div class="metric-label">Avg Deliverable Capacity</div>
+            <div class="metric-value">{{ '{:.1f}'.format(summary.capacity_factor_analysis.avg_deliverable_mw) }} MW</div>
+          </div>
+          {% endif %}
+          {% if summary.capacity_factor_analysis.capacity_utilization %}
+          <div class="metric">
+            <div class="metric-label">Capacity Utilization</div>
+            <div class="metric-value">{{ '{:.1%}'.format(summary.capacity_factor_analysis.capacity_utilization) }}</div>
+          </div>
+          {% endif %}
+        {% endif %}
+        
+        {% if summary.risk_analysis %}
+          {% if summary.risk_analysis.var_95 %}
+          <div class="metric">
+            <div class="metric-label">VaR 95% (Annual)</div>
+            <div class="metric-value">{{ '{:,.0f}'.format(summary.risk_analysis.var_95) }} PLN</div>
+          </div>
+          {% endif %}
+          {% if summary.risk_analysis.cvar_95 %}
+          <div class="metric">
+            <div class="metric-label">CVaR 95% (Expected Shortfall)</div>
+            <div class="metric-value">{{ '{:,.0f}'.format(summary.risk_analysis.cvar_95) }} PLN</div>
+          </div>
+          {% endif %}
+          {% if summary.risk_analysis.mean_annual_revenue %}
+          <div class="metric">
+            <div class="metric-label">Mean Annual Revenue</div>
+            <div class="metric-value">{{ '{:,.0f}'.format(summary.risk_analysis.mean_annual_revenue) }} PLN</div>
+          </div>
+          {% endif %}
+        {% endif %}
+        
+        {% if summary.deliverability_constraints %}
+          {% if summary.deliverability_constraints.capacity_factor %}
+          <div class="metric">
+            <div class="metric-label">Base Capacity Factor</div>
+            <div class="metric-value">{{ '{:.1%}'.format(summary.deliverability_constraints.capacity_factor) }}</div>
+          </div>
+          {% endif %}
+          {% if summary.deliverability_constraints.availability_haircut %}
+          <div class="metric">
+            <div class="metric-label">Technical Availability Factor</div>
+            <div class="metric-value">{{ '{:.1%}'.format(summary.deliverability_constraints.availability_haircut) }}</div>
+          </div>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+    
     <!-- Energy Leg Summary -->
     <div style="margin-top:20px;">
       <h4>⚡ Energy Leg Summary</h4>
@@ -318,6 +397,11 @@
   <div id="chart_capacity" class="chart"></div>
   <div id="chart_energy" class="chart"></div>
   <div id="chart_revenue" class="chart"></div>
+  
+  <!-- Enhanced Wind BSP Charts -->
+  <div id="chart_seasonal_cf" class="chart"></div>
+  <div id="chart_risk" class="chart"></div>
+  <div id="chart_monthly" class="chart"></div>
   {% endif %}
 </div>
 
@@ -424,7 +508,7 @@ function updateFetchStatus(status) {
 }
 
 {% if chart %}
-// Chart rendering for two-bid results
+// Enhanced chart rendering for two-bid results with wind BSP features
 const DT = {{ chart.dt|tojson }};
 const CAP_ACCEPT = {{ chart.capacity_acceptance_prob|tojson if chart.capacity_acceptance_prob is defined else '[]' }};
 const CAP_PRICE = {{ chart.capacity_price_pln_per_mw_h|tojson }};
@@ -434,29 +518,100 @@ const TOTAL_REVENUE = {{ chart.total_revenue_pln|tojson if chart.total_revenue_p
 const ENERGY_PRICE = {{ chart.energy_price_pln_per_mwh|tojson if chart and chart.energy_price_pln_per_mwh is defined else '[]' }};
 const K_ENERGY_LINE = {{ chart.K_energy_line|tojson if chart and chart.K_energy_line is defined else '[]' }};
 
-// 1) Capacity acceptance probability
-if (CAP_ACCEPT.length > 0) {
-  Plotly.newPlot('chart_capacity', [{
-      x: DT, y: CAP_ACCEPT, mode: 'lines', name: 'Capacity Acceptance Prob', 
-      line: {color: '#0b6cff', width: 2}
-    }], {
-      title: 'Capacity Leg - Acceptance Probability Over Time',
-      yaxis: { rangemode:'tozero', tickformat: '.1%', hoverformat: '.2%', title: 'Probability' },
-      xaxis: { type:'date', title: 'Date' }, 
-      margin: {t:50, b:50, l:60, r:30},
-      plot_bgcolor: '#fafafa'
-    }, {displayModeBar:false, responsive:true});
+// Strategic bid lines and revenue confidence intervals
+const K_CAP_LINE = {{ chart.K_cap_line|tojson if chart and chart.K_cap_line is defined else '[]' }};
+const CAP_REVENUE_UPPER = {{ chart.capacity_revenue_upper|tojson if chart and chart.capacity_revenue_upper is defined else '[]' }};
+const CAP_REVENUE_LOWER = {{ chart.capacity_revenue_lower|tojson if chart and chart.capacity_revenue_lower is defined else '[]' }};
+const ENERGY_REVENUE_UPPER = {{ chart.energy_revenue_upper|tojson if chart and chart.energy_revenue_upper is defined else '[]' }};
+const ENERGY_REVENUE_LOWER = {{ chart.energy_revenue_lower|tojson if chart and chart.energy_revenue_lower is defined else '[]' }};
+
+// Wind BSP data
+const SEASONAL_CF = {{ chart.seasonal_cf_pattern|tojson if chart and chart.seasonal_cf_pattern is defined else '{}' }};
+const CF_PERCENTILES = {{ chart.cf_percentiles|tojson if chart and chart.cf_percentiles is defined else '{}' }};
+const REVENUE_RISK = {{ chart.revenue_risk|tojson if chart and chart.revenue_risk is defined else '{}' }};
+const RISK_METRICS = {{ chart.risk_metrics|tojson if chart and chart.risk_metrics is defined else '{}' }};
+const MONTHLY_ANALYSIS = {{ chart.monthly_analysis|tojson if chart and chart.monthly_analysis is defined else '{}' }};
+const DELIVERY_CONSTRAINTS = {{ chart.delivery_constraints|tojson if chart and chart.delivery_constraints is defined else '{}' }};
+
+// 1) Enhanced aFRR Price vs Strategic Bid Comparison with Confidence Intervals
+if (CAP_PRICE.length > 0 && K_CAP_LINE.length > 0) {
+  const traces = [
+    { x: DT, y: CAP_PRICE, mode: 'lines', name: 'aFRR Market Prices', 
+      line: {color: '#0b6cff', width: 2} },
+    { x: DT, y: K_CAP_LINE, mode: 'lines', name: 'Strategic Bid (K_cap)', 
+      line: {color: '#dc3545', width: 3, dash: 'dash'} }
+  ];
+  
+  // Add revenue confidence intervals based on capacity factor and technical availability
+  if (CAP_REVENUE_UPPER.length > 0 && CAP_REVENUE_LOWER.length > 0) {
+    // Scale revenue data to price range for visualization on same chart
+    const maxPrice = Math.max(...CAP_PRICE);
+    const maxRevenue = Math.max(...CAP_REVENUE);
+    const revScale = maxPrice / (maxRevenue || 1) * 0.3; // Scale to 30% of max price for visibility
+    
+    traces.push({
+      x: DT, y: CAP_REVENUE_UPPER.map(r => r * revScale), mode: 'lines', 
+      name: 'Revenue Upper CI (CF+Tech)', yaxis: 'y2',
+      line: {color: '#28a745', width: 1, dash: 'dot'}, opacity: 0.7
+    });
+    traces.push({
+      x: DT, y: CAP_REVENUE_LOWER.map(r => r * revScale), mode: 'lines', 
+      name: 'Revenue Lower CI (CF+Tech)', yaxis: 'y2',
+      line: {color: '#28a745', width: 1, dash: 'dot'}, opacity: 0.7,
+      fill: 'tonexty', fillcolor: 'rgba(40, 167, 69, 0.1)'
+    });
+  }
+  
+  if (CAP_ACCEPT.length > 0) {
+    traces.push({ x: DT, y: CAP_ACCEPT.map(p => p * Math.max(...CAP_PRICE) * 0.8), 
+                  mode: 'lines', name: 'Acceptance Prob (scaled)', yaxis: 'y2',
+                  line: {color: '#28a745', width: 2, dash: 'dot'} });
+  }
+  
+  Plotly.newPlot('chart_capacity', traces, {
+    title: 'aFRR Capacity: Market Prices vs Strategic Bid with Revenue Confidence Intervals',
+    yaxis: { title: 'Price (PLN/MW-h)', rangemode:'tozero' },
+    yaxis2: { title: 'Revenue CI & Acceptance Prob', overlaying: 'y', side: 'right', 
+             showgrid: false },
+    xaxis: { type:'date', title: 'Date' }, 
+    margin: {t:50, b:50, l:60, r:60},
+    plot_bgcolor: '#fafafa',
+    legend: { x: 0, y: 1 }
+  }, {displayModeBar:false, responsive:true});
 }
 
-// 2) Energy price vs K_energy strike (PSE CEB balancing prices)
+// 2) Energy price vs K_energy strike with Confidence Intervals
 if (ENERGY_PRICE.length > 0 && K_ENERGY_LINE.length > 0) {
-  Plotly.newPlot('chart_energy', [
+  const traces = [
     { x: DT, y: ENERGY_PRICE, mode: 'lines', name: 'PSE CEB Balancing Price', line: {color: '#28a745', width: 2} },
-    { x: DT, y: K_ENERGY_LINE, mode: 'lines', name: 'K_energy Strike', line: {dash:'dot', color: '#dc3545', width: 2} }
-  ], {
-    title: 'Energy Leg - PSE CEB Balancing Price vs Energy Strike',
+    { x: DT, y: K_ENERGY_LINE, mode: 'lines', name: 'K_energy Strike', line: {dash:'dot', color: '#dc3545', width: 3} }
+  ];
+  
+  // Add energy revenue confidence intervals
+  if (ENERGY_REVENUE_UPPER.length > 0 && ENERGY_REVENUE_LOWER.length > 0) {
+    // Scale energy revenue to price range for visualization
+    const maxEnergyPrice = Math.max(...ENERGY_PRICE.map(p => Math.abs(p)));
+    const maxEnergyRevenue = Math.max(...ENERGY_REVENUE.map(r => Math.abs(r)));
+    const energyRevScale = maxEnergyPrice / (maxEnergyRevenue || 1) * 0.5; // Scale to 50% of max energy price
+    
+    traces.push({
+      x: DT, y: ENERGY_REVENUE_UPPER.map(r => r * energyRevScale), mode: 'lines', 
+      name: 'Energy Revenue Upper CI (θ+Price)', yaxis: 'y2',
+      line: {color: '#fd7e14', width: 1, dash: 'dot'}, opacity: 0.7
+    });
+    traces.push({
+      x: DT, y: ENERGY_REVENUE_LOWER.map(r => r * energyRevScale), mode: 'lines', 
+      name: 'Energy Revenue Lower CI (θ+Price)', yaxis: 'y2',
+      line: {color: '#fd7e14', width: 1, dash: 'dot'}, opacity: 0.7,
+      fill: 'tonexty', fillcolor: 'rgba(253, 126, 20, 0.1)'
+    });
+  }
+  
+  Plotly.newPlot('chart_energy', traces, {
+    title: 'Energy Leg - PSE CEB vs Energy Strike with Revenue Confidence Intervals',
     xaxis: { type: 'date', title: 'Date' }, 
     yaxis: { title: 'Price (PLN/MWh)' }, 
+    yaxis2: { title: 'Energy Revenue CI', overlaying: 'y', side: 'right', showgrid: false },
     margin: {t:50, b:50, l:80, r:30},
     plot_bgcolor: '#fafafa',
     legend: { x: 0, y: 1 }
@@ -497,6 +652,109 @@ if (CAP_REVENUE.length > 0 || ENERGY_REVENUE.length > 0 || TOTAL_REVENUE.length 
     legend: { x: 0, y: 1 }
   }, {displayModeBar:false, responsive:true});
 }
+
+// 4) Seasonal Capacity Factor Analysis (Wind BSP)
+if (SEASONAL_CF && SEASONAL_CF.labels) {
+  const base_cf = DELIVERY_CONSTRAINTS.capacity_factor || 0.3;
+  const seasonal_cf = SEASONAL_CF.multipliers.map(m => base_cf * m);
+  
+  Plotly.newPlot('chart_seasonal_cf', [{
+    x: SEASONAL_CF.labels, 
+    y: seasonal_cf,
+    type: 'bar',
+    name: 'Seasonal Capacity Factor',
+    marker: { 
+      color: seasonal_cf.map(cf => cf > base_cf ? '#28a745' : '#dc3545'),
+      line: { color: '#000', width: 1 }
+    }
+  }, {
+    x: SEASONAL_CF.labels,
+    y: Array(12).fill(base_cf),
+    mode: 'lines',
+    name: 'Base CF (Annual Average)',
+    line: { color: '#ffc107', width: 3, dash: 'dash' }
+  }], {
+    title: `Seasonal Wind Capacity Factor Pattern (Base: ${(base_cf*100).toFixed(0)}%)`,
+    xaxis: { title: 'Month' },
+    yaxis: { title: 'Capacity Factor', tickformat: '.1%', rangemode: 'tozero' },
+    margin: {t:50, b:50, l:60, r:30},
+    plot_bgcolor: '#fafafa',
+    showlegend: true
+  }, {displayModeBar:false, responsive:true});
+}
+
+// 5) Revenue Risk Analysis (CVaR/VaR)
+if (REVENUE_RISK && REVENUE_RISK.values && RISK_METRICS) {
+  Plotly.newPlot('chart_risk', [{
+    x: REVENUE_RISK.percentiles,
+    y: REVENUE_RISK.values,
+    type: 'bar',
+    name: 'Revenue Distribution',
+    marker: { 
+      color: REVENUE_RISK.values.map(v => 
+        v <= RISK_METRICS.var_95 ? '#dc3545' :   // VaR 95% - red
+        v <= RISK_METRICS.var_99 ? '#ffc107' :   // VaR 99% - yellow  
+        '#28a745'                                // Safe zone - green
+      )
+    }
+  }], {
+    title: 'Annual Revenue Risk Analysis (Block Bootstrap)',
+    xaxis: { title: 'Percentile' },
+    yaxis: { title: 'Annual Revenue (PLN)', tickformat: ',.0f' },
+    annotations: [
+      {
+        x: 'P5', y: RISK_METRICS.var_95,
+        text: `VaR 95%: ${(RISK_METRICS.var_95/1000000).toFixed(1)}M PLN`,
+        showarrow: true, arrowhead: 2
+      },
+      {
+        x: 'P50', y: RISK_METRICS.mean_annual,
+        text: `Mean: ${(RISK_METRICS.mean_annual/1000000).toFixed(1)}M PLN`,
+        showarrow: true, arrowhead: 2
+      }
+    ],
+    margin: {t:50, b:50, l:80, r:30},
+    plot_bgcolor: '#fafafa'
+  }, {displayModeBar:false, responsive:true});
+}
+
+// 6) Monthly Revenue with Deliverable Capacity
+if (MONTHLY_ANALYSIS && MONTHLY_ANALYSIS.months) {
+  const month_labels = MONTHLY_ANALYSIS.months.map(m => 
+    ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]
+  );
+  
+  const traces = [{
+    x: month_labels,
+    y: MONTHLY_ANALYSIS.capacity_revenue.map(v => v / 1000000), // Convert to millions
+    type: 'bar',
+    name: 'Capacity Revenue (M PLN)',
+    marker: { color: '#6f42c1' }
+  }];
+  
+  if (MONTHLY_ANALYSIS.deliverable_capacity && MONTHLY_ANALYSIS.deliverable_capacity.length > 0) {
+    traces.push({
+      x: month_labels,
+      y: MONTHLY_ANALYSIS.deliverable_capacity,
+      mode: 'lines+markers',
+      name: 'Avg Deliverable MW',
+      yaxis: 'y2',
+      line: { color: '#fd7e14', width: 3 },
+      marker: { size: 8 }
+    });
+  }
+  
+  Plotly.newPlot('chart_monthly', traces, {
+    title: 'Monthly Capacity Revenue & Deliverable Capacity',
+    xaxis: { title: 'Month' },
+    yaxis: { title: 'Revenue (Million PLN)', rangemode: 'tozero' },
+    yaxis2: { title: 'Deliverable Capacity (MW)', overlaying: 'y', side: 'right' },
+    margin: {t:50, b:50, l:60, r:60},
+    plot_bgcolor: '#fafafa',
+    legend: { x: 0, y: 1 }
+  }, {displayModeBar:false, responsive:true});
+}
+
 {% endif %}
 </script>
 </body>

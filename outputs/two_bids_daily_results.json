@@ -1,6 +1,6 @@
 {
   "report_type": "daily_aggregated_results",
-  "generated_at": "2025-08-24T18:03:23.854361",
+  "generated_at": "2025-08-24T21:17:56.711997",
   "portfolio_mw": 50.0,
   "model_parameters": {
     "portfolio_mw": 50.0,
@@ -12,2197 +12,2200 @@
     "theta": 0.01,
     "cap_model": "parametric",
     "ridge_lambda": 1.0,
-    "pred_cols_input": "",
-    "out_prefix": "two_bids"
+    "pred_cols_input": "CEN,COR,SK",
+    "out_prefix": "two_bids",
+    "capacity_factor": 0.3,
+    "seasonal_cf_variation": true,
+    "availability_haircut": 0.95
   },
   "daily_results": [
     {
       "business_date": "2024-06-30",
-      "afrr_capacity_revenue_pln": 4719.28,
+      "afrr_capacity_revenue_pln": 1075.99,
       "intervals_count": 8,
       "hours_coverage": 2.0
     },
     {
       "business_date": "2024-07-01",
-      "afrr_capacity_revenue_pln": 56487.02,
+      "afrr_capacity_revenue_pln": 12879.04,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-02",
-      "afrr_capacity_revenue_pln": 56153.87,
+      "afrr_capacity_revenue_pln": 12803.08,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-03",
-      "afrr_capacity_revenue_pln": 54228.42,
+      "afrr_capacity_revenue_pln": 12364.08,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-04",
-      "afrr_capacity_revenue_pln": 53489.47,
+      "afrr_capacity_revenue_pln": 12195.6,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-05",
-      "afrr_capacity_revenue_pln": 53430.61,
+      "afrr_capacity_revenue_pln": 12182.18,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-06",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 12911.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-07",
-      "afrr_capacity_revenue_pln": 56113.37,
+      "afrr_capacity_revenue_pln": 12793.85,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-08",
-      "afrr_capacity_revenue_pln": 55141.86,
+      "afrr_capacity_revenue_pln": 12572.34,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-09",
-      "afrr_capacity_revenue_pln": 53174.87,
+      "afrr_capacity_revenue_pln": 12123.87,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-10",
-      "afrr_capacity_revenue_pln": 54599.86,
+      "afrr_capacity_revenue_pln": 12448.77,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-11",
-      "afrr_capacity_revenue_pln": 52324.93,
+      "afrr_capacity_revenue_pln": 11930.08,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-12",
-      "afrr_capacity_revenue_pln": 52931.48,
+      "afrr_capacity_revenue_pln": 12068.38,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-13",
-      "afrr_capacity_revenue_pln": 56362.52,
+      "afrr_capacity_revenue_pln": 12850.66,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-14",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 12911.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-15",
-      "afrr_capacity_revenue_pln": 51666.91,
+      "afrr_capacity_revenue_pln": 11780.06,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-16",
-      "afrr_capacity_revenue_pln": 54264.45,
+      "afrr_capacity_revenue_pln": 12372.29,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-17",
-      "afrr_capacity_revenue_pln": 48145.63,
+      "afrr_capacity_revenue_pln": 10977.2,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-18",
-      "afrr_capacity_revenue_pln": 54714.03,
+      "afrr_capacity_revenue_pln": 12474.8,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-19",
-      "afrr_capacity_revenue_pln": 54779.71,
+      "afrr_capacity_revenue_pln": 12489.77,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-20",
-      "afrr_capacity_revenue_pln": 52954.16,
+      "afrr_capacity_revenue_pln": 12073.55,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-21",
-      "afrr_capacity_revenue_pln": 55191.1,
+      "afrr_capacity_revenue_pln": 12583.57,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-22",
-      "afrr_capacity_revenue_pln": 55829.3,
+      "afrr_capacity_revenue_pln": 12729.08,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-23",
-      "afrr_capacity_revenue_pln": 51752.54,
+      "afrr_capacity_revenue_pln": 11799.58,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-24",
-      "afrr_capacity_revenue_pln": 51402.94,
+      "afrr_capacity_revenue_pln": 11719.87,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-25",
-      "afrr_capacity_revenue_pln": 49446.11,
+      "afrr_capacity_revenue_pln": 11273.71,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-26",
-      "afrr_capacity_revenue_pln": 48673.08,
+      "afrr_capacity_revenue_pln": 11097.46,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-27",
-      "afrr_capacity_revenue_pln": 49857.95,
+      "afrr_capacity_revenue_pln": 11367.61,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-28",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 12911.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-29",
-      "afrr_capacity_revenue_pln": 56561.49,
+      "afrr_capacity_revenue_pln": 12896.02,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-30",
-      "afrr_capacity_revenue_pln": 52198.67,
+      "afrr_capacity_revenue_pln": 11901.3,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-07-31",
-      "afrr_capacity_revenue_pln": 52227.4,
+      "afrr_capacity_revenue_pln": 11907.85,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-01",
-      "afrr_capacity_revenue_pln": 48149.68,
+      "afrr_capacity_revenue_pln": 10978.13,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-02",
-      "afrr_capacity_revenue_pln": 54104.04,
+      "afrr_capacity_revenue_pln": 12335.72,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-03",
-      "afrr_capacity_revenue_pln": 52728.78,
+      "afrr_capacity_revenue_pln": 12022.16,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-04",
-      "afrr_capacity_revenue_pln": 55377.51,
+      "afrr_capacity_revenue_pln": 12626.07,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-05",
-      "afrr_capacity_revenue_pln": 53149.26,
+      "afrr_capacity_revenue_pln": 12118.03,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-06",
-      "afrr_capacity_revenue_pln": 52523.87,
+      "afrr_capacity_revenue_pln": 11975.44,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-07",
-      "afrr_capacity_revenue_pln": 51357.14,
+      "afrr_capacity_revenue_pln": 11709.43,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-08",
-      "afrr_capacity_revenue_pln": 46487.48,
+      "afrr_capacity_revenue_pln": 10599.15,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-09",
-      "afrr_capacity_revenue_pln": 43913.31,
+      "afrr_capacity_revenue_pln": 10012.23,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-10",
-      "afrr_capacity_revenue_pln": 53769.03,
+      "afrr_capacity_revenue_pln": 12259.34,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-11",
-      "afrr_capacity_revenue_pln": 54533.64,
+      "afrr_capacity_revenue_pln": 12433.67,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-12",
-      "afrr_capacity_revenue_pln": 48168.09,
+      "afrr_capacity_revenue_pln": 10982.33,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-13",
-      "afrr_capacity_revenue_pln": 46785.5,
+      "afrr_capacity_revenue_pln": 10667.09,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-14",
-      "afrr_capacity_revenue_pln": 52206.47,
+      "afrr_capacity_revenue_pln": 11903.08,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-15",
-      "afrr_capacity_revenue_pln": 51566.91,
+      "afrr_capacity_revenue_pln": 11757.26,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-16",
-      "afrr_capacity_revenue_pln": 51095.48,
+      "afrr_capacity_revenue_pln": 11649.77,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-17",
-      "afrr_capacity_revenue_pln": 50704.25,
+      "afrr_capacity_revenue_pln": 11560.57,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-18",
-      "afrr_capacity_revenue_pln": 54483.37,
+      "afrr_capacity_revenue_pln": 12422.21,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-19",
-      "afrr_capacity_revenue_pln": 50856.18,
+      "afrr_capacity_revenue_pln": 11595.21,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-20",
-      "afrr_capacity_revenue_pln": 47708.87,
+      "afrr_capacity_revenue_pln": 10877.62,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-21",
-      "afrr_capacity_revenue_pln": 37345.49,
+      "afrr_capacity_revenue_pln": 8514.77,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-22",
-      "afrr_capacity_revenue_pln": 39995.5,
+      "afrr_capacity_revenue_pln": 9118.97,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-23",
-      "afrr_capacity_revenue_pln": 50541.43,
+      "afrr_capacity_revenue_pln": 11523.45,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-24",
-      "afrr_capacity_revenue_pln": 52168.22,
+      "afrr_capacity_revenue_pln": 11894.35,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-25",
-      "afrr_capacity_revenue_pln": 50641.17,
+      "afrr_capacity_revenue_pln": 11546.19,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-26",
-      "afrr_capacity_revenue_pln": 43724.7,
+      "afrr_capacity_revenue_pln": 9969.23,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-27",
-      "afrr_capacity_revenue_pln": 50448.79,
+      "afrr_capacity_revenue_pln": 11502.32,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-28",
-      "afrr_capacity_revenue_pln": 51249.33,
+      "afrr_capacity_revenue_pln": 11684.85,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-29",
-      "afrr_capacity_revenue_pln": 51286.39,
+      "afrr_capacity_revenue_pln": 11693.3,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-30",
-      "afrr_capacity_revenue_pln": 50710.46,
+      "afrr_capacity_revenue_pln": 11561.99,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-08-31",
-      "afrr_capacity_revenue_pln": 34046.39,
+      "afrr_capacity_revenue_pln": 7762.58,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-01",
-      "afrr_capacity_revenue_pln": 39724.78,
+      "afrr_capacity_revenue_pln": 9057.25,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-02",
-      "afrr_capacity_revenue_pln": 40539.02,
+      "afrr_capacity_revenue_pln": 9242.9,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-03",
-      "afrr_capacity_revenue_pln": 41115.17,
+      "afrr_capacity_revenue_pln": 9374.26,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-04",
-      "afrr_capacity_revenue_pln": 38478.15,
+      "afrr_capacity_revenue_pln": 8773.02,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-05",
-      "afrr_capacity_revenue_pln": 50637.94,
+      "afrr_capacity_revenue_pln": 11545.45,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-06",
-      "afrr_capacity_revenue_pln": 48333.06,
+      "afrr_capacity_revenue_pln": 11019.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-07",
-      "afrr_capacity_revenue_pln": 49110.75,
+      "afrr_capacity_revenue_pln": 11197.25,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-08",
-      "afrr_capacity_revenue_pln": 51454.04,
+      "afrr_capacity_revenue_pln": 11731.52,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-09",
-      "afrr_capacity_revenue_pln": 46013.16,
+      "afrr_capacity_revenue_pln": 10491.0,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-10",
-      "afrr_capacity_revenue_pln": 49756.12,
+      "afrr_capacity_revenue_pln": 11344.4,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-11",
-      "afrr_capacity_revenue_pln": 39640.67,
+      "afrr_capacity_revenue_pln": 9038.07,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-12",
-      "afrr_capacity_revenue_pln": 34101.86,
+      "afrr_capacity_revenue_pln": 7775.22,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-13",
-      "afrr_capacity_revenue_pln": 43574.93,
+      "afrr_capacity_revenue_pln": 9935.09,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-14",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 12911.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-15",
-      "afrr_capacity_revenue_pln": 50668.76,
+      "afrr_capacity_revenue_pln": 11552.48,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-16",
-      "afrr_capacity_revenue_pln": 50953.86,
+      "afrr_capacity_revenue_pln": 11617.48,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-17",
-      "afrr_capacity_revenue_pln": 44391.18,
+      "afrr_capacity_revenue_pln": 10121.19,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-18",
-      "afrr_capacity_revenue_pln": 41486.43,
+      "afrr_capacity_revenue_pln": 9458.91,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-19",
-      "afrr_capacity_revenue_pln": 46452.49,
+      "afrr_capacity_revenue_pln": 10591.17,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-20",
-      "afrr_capacity_revenue_pln": 43726.12,
+      "afrr_capacity_revenue_pln": 9969.55,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-21",
-      "afrr_capacity_revenue_pln": 42968.14,
+      "afrr_capacity_revenue_pln": 9796.74,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-22",
-      "afrr_capacity_revenue_pln": 46303.29,
+      "afrr_capacity_revenue_pln": 10557.15,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-23",
-      "afrr_capacity_revenue_pln": 39691.73,
+      "afrr_capacity_revenue_pln": 9049.71,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-24",
-      "afrr_capacity_revenue_pln": 48645.85,
+      "afrr_capacity_revenue_pln": 11091.25,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-25",
-      "afrr_capacity_revenue_pln": 53919.9,
+      "afrr_capacity_revenue_pln": 12293.74,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-26",
-      "afrr_capacity_revenue_pln": 56000.96,
+      "afrr_capacity_revenue_pln": 12768.22,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-27",
-      "afrr_capacity_revenue_pln": 55826.49,
+      "afrr_capacity_revenue_pln": 12728.44,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-28",
-      "afrr_capacity_revenue_pln": 53410.28,
+      "afrr_capacity_revenue_pln": 12177.54,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-29",
-      "afrr_capacity_revenue_pln": 51480.58,
+      "afrr_capacity_revenue_pln": 11737.57,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-09-30",
-      "afrr_capacity_revenue_pln": 49704.92,
+      "afrr_capacity_revenue_pln": 11332.72,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-01",
-      "afrr_capacity_revenue_pln": 50078.49,
+      "afrr_capacity_revenue_pln": 17126.84,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-02",
-      "afrr_capacity_revenue_pln": 44794.47,
+      "afrr_capacity_revenue_pln": 15319.71,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-03",
-      "afrr_capacity_revenue_pln": 50773.62,
+      "afrr_capacity_revenue_pln": 17364.58,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-04",
-      "afrr_capacity_revenue_pln": 51409.86,
+      "afrr_capacity_revenue_pln": 17582.17,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-05",
-      "afrr_capacity_revenue_pln": 42901.53,
+      "afrr_capacity_revenue_pln": 14672.32,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-06",
-      "afrr_capacity_revenue_pln": 49817.84,
+      "afrr_capacity_revenue_pln": 17037.7,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-07",
-      "afrr_capacity_revenue_pln": 30018.59,
+      "afrr_capacity_revenue_pln": 10266.36,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-08",
-      "afrr_capacity_revenue_pln": 49559.07,
+      "afrr_capacity_revenue_pln": 16949.2,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-09",
-      "afrr_capacity_revenue_pln": 50592.75,
+      "afrr_capacity_revenue_pln": 17302.72,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-10",
-      "afrr_capacity_revenue_pln": 55230.82,
+      "afrr_capacity_revenue_pln": 18888.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-11",
-      "afrr_capacity_revenue_pln": 50783.08,
+      "afrr_capacity_revenue_pln": 17367.81,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-12",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 19367.91,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-13",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 19367.91,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-14",
-      "afrr_capacity_revenue_pln": 53276.76,
+      "afrr_capacity_revenue_pln": 18220.65,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-15",
-      "afrr_capacity_revenue_pln": 50376.67,
+      "afrr_capacity_revenue_pln": 17228.82,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-16",
-      "afrr_capacity_revenue_pln": 41370.36,
+      "afrr_capacity_revenue_pln": 14148.66,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-17",
-      "afrr_capacity_revenue_pln": 48738.56,
+      "afrr_capacity_revenue_pln": 16668.59,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-18",
-      "afrr_capacity_revenue_pln": 50700.71,
+      "afrr_capacity_revenue_pln": 17339.64,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-19",
-      "afrr_capacity_revenue_pln": 54877.57,
+      "afrr_capacity_revenue_pln": 18768.13,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-20",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 19367.91,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-21",
-      "afrr_capacity_revenue_pln": 49974.39,
+      "afrr_capacity_revenue_pln": 17091.24,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-22",
-      "afrr_capacity_revenue_pln": 44433.47,
+      "afrr_capacity_revenue_pln": 15196.25,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-23",
-      "afrr_capacity_revenue_pln": 53292.05,
+      "afrr_capacity_revenue_pln": 18225.88,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-24",
-      "afrr_capacity_revenue_pln": 47068.92,
+      "afrr_capacity_revenue_pln": 16097.57,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-25",
-      "afrr_capacity_revenue_pln": 44556.89,
+      "afrr_capacity_revenue_pln": 15238.46,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-26",
-      "afrr_capacity_revenue_pln": 49268.12,
+      "afrr_capacity_revenue_pln": 16849.7,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-27",
-      "afrr_capacity_revenue_pln": 53947.72,
+      "afrr_capacity_revenue_pln": 18450.12,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-28",
-      "afrr_capacity_revenue_pln": 48611.99,
+      "afrr_capacity_revenue_pln": 16625.3,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-29",
-      "afrr_capacity_revenue_pln": 50197.22,
+      "afrr_capacity_revenue_pln": 17167.45,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-30",
-      "afrr_capacity_revenue_pln": 50697.84,
+      "afrr_capacity_revenue_pln": 17338.66,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-10-31",
-      "afrr_capacity_revenue_pln": 54212.83,
+      "afrr_capacity_revenue_pln": 18540.79,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-01",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 19367.91,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-02",
-      "afrr_capacity_revenue_pln": 55054.6,
+      "afrr_capacity_revenue_pln": 18828.67,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-03",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 19367.91,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-04",
-      "afrr_capacity_revenue_pln": 55448.57,
+      "afrr_capacity_revenue_pln": 18963.41,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-05",
-      "afrr_capacity_revenue_pln": 45466.15,
+      "afrr_capacity_revenue_pln": 15549.42,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-06",
-      "afrr_capacity_revenue_pln": 44666.93,
+      "afrr_capacity_revenue_pln": 15276.09,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-07",
-      "afrr_capacity_revenue_pln": 42500.01,
+      "afrr_capacity_revenue_pln": 14535.0,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-08",
-      "afrr_capacity_revenue_pln": 45009.04,
+      "afrr_capacity_revenue_pln": 15393.09,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-09",
-      "afrr_capacity_revenue_pln": 51730.08,
+      "afrr_capacity_revenue_pln": 17691.69,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-10",
-      "afrr_capacity_revenue_pln": 54257.83,
+      "afrr_capacity_revenue_pln": 18556.18,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-11",
-      "afrr_capacity_revenue_pln": 52410.96,
+      "afrr_capacity_revenue_pln": 17924.55,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-12",
-      "afrr_capacity_revenue_pln": 41022.7,
+      "afrr_capacity_revenue_pln": 14029.76,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-13",
-      "afrr_capacity_revenue_pln": 40215.18,
+      "afrr_capacity_revenue_pln": 13753.59,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-14",
-      "afrr_capacity_revenue_pln": 45520.89,
+      "afrr_capacity_revenue_pln": 15568.14,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-15",
-      "afrr_capacity_revenue_pln": 44849.14,
+      "afrr_capacity_revenue_pln": 15338.41,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-16",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 19367.91,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-17",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 19367.91,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-18",
-      "afrr_capacity_revenue_pln": 50387.39,
+      "afrr_capacity_revenue_pln": 17232.49,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-19",
-      "afrr_capacity_revenue_pln": 48791.89,
+      "afrr_capacity_revenue_pln": 16686.83,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-20",
-      "afrr_capacity_revenue_pln": 54031.73,
+      "afrr_capacity_revenue_pln": 18478.85,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-21",
-      "afrr_capacity_revenue_pln": 50468.37,
+      "afrr_capacity_revenue_pln": 17260.18,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-22",
-      "afrr_capacity_revenue_pln": 52364.88,
+      "afrr_capacity_revenue_pln": 17908.79,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-23",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 19367.91,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-24",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 19367.91,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-25",
-      "afrr_capacity_revenue_pln": 53460.21,
+      "afrr_capacity_revenue_pln": 18283.39,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-26",
-      "afrr_capacity_revenue_pln": 49435.34,
+      "afrr_capacity_revenue_pln": 16906.88,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-27",
-      "afrr_capacity_revenue_pln": 51767.72,
+      "afrr_capacity_revenue_pln": 17704.56,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-28",
-      "afrr_capacity_revenue_pln": 47774.79,
+      "afrr_capacity_revenue_pln": 16338.98,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-29",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 19367.91,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-11-30",
-      "afrr_capacity_revenue_pln": 38368.79,
+      "afrr_capacity_revenue_pln": 13122.13,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-01",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 20981.9,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-02",
-      "afrr_capacity_revenue_pln": 43710.49,
+      "afrr_capacity_revenue_pln": 16194.74,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-03",
-      "afrr_capacity_revenue_pln": 53155.29,
+      "afrr_capacity_revenue_pln": 19694.04,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-04",
-      "afrr_capacity_revenue_pln": 46283.52,
+      "afrr_capacity_revenue_pln": 17148.04,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-05",
-      "afrr_capacity_revenue_pln": 48790.87,
+      "afrr_capacity_revenue_pln": 18077.02,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-06",
-      "afrr_capacity_revenue_pln": 41645.69,
+      "afrr_capacity_revenue_pln": 15429.73,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-07",
-      "afrr_capacity_revenue_pln": 53850.12,
+      "afrr_capacity_revenue_pln": 19951.47,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-08",
-      "afrr_capacity_revenue_pln": 47158.45,
+      "afrr_capacity_revenue_pln": 17472.2,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-09",
-      "afrr_capacity_revenue_pln": 54771.67,
+      "afrr_capacity_revenue_pln": 20292.9,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-10",
-      "afrr_capacity_revenue_pln": 43685.98,
+      "afrr_capacity_revenue_pln": 16185.65,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-11",
-      "afrr_capacity_revenue_pln": 53097.21,
+      "afrr_capacity_revenue_pln": 19672.52,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-12",
-      "afrr_capacity_revenue_pln": 38499.84,
+      "afrr_capacity_revenue_pln": 14264.19,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-13",
-      "afrr_capacity_revenue_pln": 45998.04,
+      "afrr_capacity_revenue_pln": 17042.27,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-14",
-      "afrr_capacity_revenue_pln": 46101.34,
+      "afrr_capacity_revenue_pln": 17080.55,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-15",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 20981.9,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-16",
-      "afrr_capacity_revenue_pln": 50439.62,
+      "afrr_capacity_revenue_pln": 18687.88,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-17",
-      "afrr_capacity_revenue_pln": 46348.16,
+      "afrr_capacity_revenue_pln": 17171.99,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-18",
-      "afrr_capacity_revenue_pln": 40805.99,
+      "afrr_capacity_revenue_pln": 15118.62,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-19",
-      "afrr_capacity_revenue_pln": 55492.28,
+      "afrr_capacity_revenue_pln": 20559.89,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-20",
-      "afrr_capacity_revenue_pln": 54363.76,
+      "afrr_capacity_revenue_pln": 20141.77,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-21",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 20981.9,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-22",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 20981.9,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-23",
-      "afrr_capacity_revenue_pln": 42707.2,
+      "afrr_capacity_revenue_pln": 15823.02,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-24",
-      "afrr_capacity_revenue_pln": 44361.58,
+      "afrr_capacity_revenue_pln": 16435.97,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-25",
-      "afrr_capacity_revenue_pln": 56486.65,
+      "afrr_capacity_revenue_pln": 20928.3,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-26",
-      "afrr_capacity_revenue_pln": 46935.0,
+      "afrr_capacity_revenue_pln": 17389.42,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-27",
-      "afrr_capacity_revenue_pln": 44746.86,
+      "afrr_capacity_revenue_pln": 16578.71,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-28",
-      "afrr_capacity_revenue_pln": 40539.8,
+      "afrr_capacity_revenue_pln": 15019.99,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-29",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 20981.9,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-30",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 20981.9,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2024-12-31",
-      "afrr_capacity_revenue_pln": 55979.74,
+      "afrr_capacity_revenue_pln": 20740.49,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-01",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 20981.9,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-02",
-      "afrr_capacity_revenue_pln": 49301.48,
+      "afrr_capacity_revenue_pln": 18266.2,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-03",
-      "afrr_capacity_revenue_pln": 53013.31,
+      "afrr_capacity_revenue_pln": 19641.43,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-04",
-      "afrr_capacity_revenue_pln": 52326.84,
+      "afrr_capacity_revenue_pln": 19387.09,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-05",
-      "afrr_capacity_revenue_pln": 56456.27,
+      "afrr_capacity_revenue_pln": 20917.05,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-06",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 20981.9,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-07",
-      "afrr_capacity_revenue_pln": 51815.7,
+      "afrr_capacity_revenue_pln": 19197.72,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-08",
-      "afrr_capacity_revenue_pln": 43152.65,
+      "afrr_capacity_revenue_pln": 15988.06,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-09",
-      "afrr_capacity_revenue_pln": 45245.93,
+      "afrr_capacity_revenue_pln": 16763.62,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-10",
-      "afrr_capacity_revenue_pln": 44080.18,
+      "afrr_capacity_revenue_pln": 16331.71,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-11",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 20981.9,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-12",
-      "afrr_capacity_revenue_pln": 54324.34,
+      "afrr_capacity_revenue_pln": 20127.17,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-13",
-      "afrr_capacity_revenue_pln": 51487.32,
+      "afrr_capacity_revenue_pln": 19076.05,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-14",
-      "afrr_capacity_revenue_pln": 48633.18,
+      "afrr_capacity_revenue_pln": 18018.59,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-15",
-      "afrr_capacity_revenue_pln": 54832.26,
+      "afrr_capacity_revenue_pln": 20315.35,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-16",
-      "afrr_capacity_revenue_pln": 50654.62,
+      "afrr_capacity_revenue_pln": 18767.54,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-17",
-      "afrr_capacity_revenue_pln": 49758.38,
+      "afrr_capacity_revenue_pln": 18435.48,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-18",
-      "afrr_capacity_revenue_pln": 49163.17,
+      "afrr_capacity_revenue_pln": 18214.95,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-19",
-      "afrr_capacity_revenue_pln": 36891.22,
+      "afrr_capacity_revenue_pln": 13668.2,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-20",
-      "afrr_capacity_revenue_pln": 55813.82,
+      "afrr_capacity_revenue_pln": 20679.02,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-21",
-      "afrr_capacity_revenue_pln": 31744.81,
+      "afrr_capacity_revenue_pln": 11761.45,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-22",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 20981.9,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-23",
-      "afrr_capacity_revenue_pln": 38705.94,
+      "afrr_capacity_revenue_pln": 14340.55,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-24",
-      "afrr_capacity_revenue_pln": 51636.24,
+      "afrr_capacity_revenue_pln": 19131.23,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-25",
-      "afrr_capacity_revenue_pln": 53208.73,
+      "afrr_capacity_revenue_pln": 19713.83,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-26",
-      "afrr_capacity_revenue_pln": 53891.05,
+      "afrr_capacity_revenue_pln": 19966.63,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-27",
-      "afrr_capacity_revenue_pln": 52026.82,
+      "afrr_capacity_revenue_pln": 19275.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-28",
-      "afrr_capacity_revenue_pln": 54536.52,
+      "afrr_capacity_revenue_pln": 20205.78,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-29",
-      "afrr_capacity_revenue_pln": 54855.62,
+      "afrr_capacity_revenue_pln": 20324.01,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-30",
-      "afrr_capacity_revenue_pln": 46773.69,
+      "afrr_capacity_revenue_pln": 17329.65,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-01-31",
-      "afrr_capacity_revenue_pln": 46909.45,
+      "afrr_capacity_revenue_pln": 17379.95,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-01",
-      "afrr_capacity_revenue_pln": 55143.53,
+      "afrr_capacity_revenue_pln": 20430.68,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-02",
-      "afrr_capacity_revenue_pln": 56455.21,
+      "afrr_capacity_revenue_pln": 20916.65,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-03",
-      "afrr_capacity_revenue_pln": 53793.66,
+      "afrr_capacity_revenue_pln": 19930.55,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-04",
-      "afrr_capacity_revenue_pln": 48601.59,
+      "afrr_capacity_revenue_pln": 18006.89,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-05",
-      "afrr_capacity_revenue_pln": 49398.9,
+      "afrr_capacity_revenue_pln": 18302.29,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-06",
-      "afrr_capacity_revenue_pln": 54222.21,
+      "afrr_capacity_revenue_pln": 20089.33,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-07",
-      "afrr_capacity_revenue_pln": 52825.47,
+      "afrr_capacity_revenue_pln": 19571.84,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-08",
-      "afrr_capacity_revenue_pln": 54026.22,
+      "afrr_capacity_revenue_pln": 20016.71,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-09",
-      "afrr_capacity_revenue_pln": 55926.27,
+      "afrr_capacity_revenue_pln": 20720.68,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-10",
-      "afrr_capacity_revenue_pln": 54422.61,
+      "afrr_capacity_revenue_pln": 20163.58,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-11",
-      "afrr_capacity_revenue_pln": 54196.96,
+      "afrr_capacity_revenue_pln": 20079.97,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-12",
-      "afrr_capacity_revenue_pln": 43738.22,
+      "afrr_capacity_revenue_pln": 16205.01,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-13",
-      "afrr_capacity_revenue_pln": 55370.31,
+      "afrr_capacity_revenue_pln": 20514.7,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-14",
-      "afrr_capacity_revenue_pln": 50718.61,
+      "afrr_capacity_revenue_pln": 18791.25,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-15",
-      "afrr_capacity_revenue_pln": 56150.41,
+      "afrr_capacity_revenue_pln": 20803.73,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-16",
-      "afrr_capacity_revenue_pln": 49829.49,
+      "afrr_capacity_revenue_pln": 18461.82,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-17",
-      "afrr_capacity_revenue_pln": 52706.45,
+      "afrr_capacity_revenue_pln": 19527.74,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-18",
-      "afrr_capacity_revenue_pln": 54093.96,
+      "afrr_capacity_revenue_pln": 20041.81,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-19",
-      "afrr_capacity_revenue_pln": 42569.67,
+      "afrr_capacity_revenue_pln": 15772.06,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-20",
-      "afrr_capacity_revenue_pln": 55320.82,
+      "afrr_capacity_revenue_pln": 20496.36,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-21",
-      "afrr_capacity_revenue_pln": 53301.83,
+      "afrr_capacity_revenue_pln": 19748.33,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-22",
-      "afrr_capacity_revenue_pln": 56623.71,
+      "afrr_capacity_revenue_pln": 20979.08,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-23",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 20981.9,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-24",
-      "afrr_capacity_revenue_pln": 53802.05,
+      "afrr_capacity_revenue_pln": 19933.66,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-25",
-      "afrr_capacity_revenue_pln": 53388.74,
+      "afrr_capacity_revenue_pln": 19780.53,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-26",
-      "afrr_capacity_revenue_pln": 50225.51,
+      "afrr_capacity_revenue_pln": 18608.55,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-27",
-      "afrr_capacity_revenue_pln": 49541.27,
+      "afrr_capacity_revenue_pln": 18355.04,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-02-28",
-      "afrr_capacity_revenue_pln": 54593.84,
+      "afrr_capacity_revenue_pln": 20227.02,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-01",
-      "afrr_capacity_revenue_pln": 54409.29,
+      "afrr_capacity_revenue_pln": 13955.98,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-02",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-03",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-04",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-05",
-      "afrr_capacity_revenue_pln": 54628.86,
+      "afrr_capacity_revenue_pln": 14012.3,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-06",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-07",
-      "afrr_capacity_revenue_pln": 56603.15,
+      "afrr_capacity_revenue_pln": 14518.71,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-08",
-      "afrr_capacity_revenue_pln": 56179.67,
+      "afrr_capacity_revenue_pln": 14410.09,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-09",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-10",
-      "afrr_capacity_revenue_pln": 54428.57,
+      "afrr_capacity_revenue_pln": 13960.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-11",
-      "afrr_capacity_revenue_pln": 54407.53,
+      "afrr_capacity_revenue_pln": 13955.53,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-12",
-      "afrr_capacity_revenue_pln": 48927.9,
+      "afrr_capacity_revenue_pln": 12550.01,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-13",
-      "afrr_capacity_revenue_pln": 53376.94,
+      "afrr_capacity_revenue_pln": 13691.19,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-14",
-      "afrr_capacity_revenue_pln": 49538.38,
+      "afrr_capacity_revenue_pln": 12706.59,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-15",
-      "afrr_capacity_revenue_pln": 49914.5,
+      "afrr_capacity_revenue_pln": 12803.07,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-16",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-17",
-      "afrr_capacity_revenue_pln": 56520.33,
+      "afrr_capacity_revenue_pln": 14497.46,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-18",
-      "afrr_capacity_revenue_pln": 54809.14,
+      "afrr_capacity_revenue_pln": 14058.54,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-19",
-      "afrr_capacity_revenue_pln": 53602.62,
+      "afrr_capacity_revenue_pln": 13749.07,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-20",
-      "afrr_capacity_revenue_pln": 54431.68,
+      "afrr_capacity_revenue_pln": 13961.73,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-21",
-      "afrr_capacity_revenue_pln": 52729.78,
+      "afrr_capacity_revenue_pln": 13525.19,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-22",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-23",
-      "afrr_capacity_revenue_pln": 55701.49,
+      "afrr_capacity_revenue_pln": 14287.43,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-24",
-      "afrr_capacity_revenue_pln": 54679.84,
+      "afrr_capacity_revenue_pln": 14025.38,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-25",
-      "afrr_capacity_revenue_pln": 52907.76,
+      "afrr_capacity_revenue_pln": 13570.84,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-26",
-      "afrr_capacity_revenue_pln": 48344.71,
+      "afrr_capacity_revenue_pln": 12400.42,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-27",
-      "afrr_capacity_revenue_pln": 56190.58,
+      "afrr_capacity_revenue_pln": 14412.88,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-28",
-      "afrr_capacity_revenue_pln": 55795.51,
+      "afrr_capacity_revenue_pln": 14311.55,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-29",
-      "afrr_capacity_revenue_pln": 56553.9,
+      "afrr_capacity_revenue_pln": 14506.08,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-30",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-03-31",
-      "afrr_capacity_revenue_pln": 54432.26,
+      "afrr_capacity_revenue_pln": 13961.87,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-01",
-      "afrr_capacity_revenue_pln": 54620.61,
+      "afrr_capacity_revenue_pln": 14010.19,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-02",
-      "afrr_capacity_revenue_pln": 55837.49,
+      "afrr_capacity_revenue_pln": 14322.32,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-03",
-      "afrr_capacity_revenue_pln": 54106.03,
+      "afrr_capacity_revenue_pln": 13878.2,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-04",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-05",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-06",
-      "afrr_capacity_revenue_pln": 55701.49,
+      "afrr_capacity_revenue_pln": 14287.43,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-07",
-      "afrr_capacity_revenue_pln": 51738.08,
+      "afrr_capacity_revenue_pln": 13270.82,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-08",
-      "afrr_capacity_revenue_pln": 55490.42,
+      "afrr_capacity_revenue_pln": 14233.29,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-09",
-      "afrr_capacity_revenue_pln": 56509.4,
+      "afrr_capacity_revenue_pln": 14494.66,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-10",
-      "afrr_capacity_revenue_pln": 56539.02,
+      "afrr_capacity_revenue_pln": 14502.26,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-11",
-      "afrr_capacity_revenue_pln": 54649.01,
+      "afrr_capacity_revenue_pln": 14017.47,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-12",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-13",
-      "afrr_capacity_revenue_pln": 52797.27,
+      "afrr_capacity_revenue_pln": 13542.5,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-14",
-      "afrr_capacity_revenue_pln": 55825.02,
+      "afrr_capacity_revenue_pln": 14319.12,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-15",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-16",
-      "afrr_capacity_revenue_pln": 51698.51,
+      "afrr_capacity_revenue_pln": 13260.67,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-17",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-18",
-      "afrr_capacity_revenue_pln": 54610.49,
+      "afrr_capacity_revenue_pln": 14007.59,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-19",
-      "afrr_capacity_revenue_pln": 56481.85,
+      "afrr_capacity_revenue_pln": 14487.6,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-20",
-      "afrr_capacity_revenue_pln": 55701.49,
+      "afrr_capacity_revenue_pln": 14287.43,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-21",
-      "afrr_capacity_revenue_pln": 55813.03,
+      "afrr_capacity_revenue_pln": 14316.04,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-22",
-      "afrr_capacity_revenue_pln": 56617.49,
+      "afrr_capacity_revenue_pln": 14522.39,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-23",
-      "afrr_capacity_revenue_pln": 53964.0,
+      "afrr_capacity_revenue_pln": 13841.77,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-24",
-      "afrr_capacity_revenue_pln": 49605.98,
+      "afrr_capacity_revenue_pln": 12723.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-25",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-26",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-27",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-28",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-29",
-      "afrr_capacity_revenue_pln": 56166.4,
+      "afrr_capacity_revenue_pln": 14406.68,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-04-30",
-      "afrr_capacity_revenue_pln": 56395.49,
+      "afrr_capacity_revenue_pln": 14465.44,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-01",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-02",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-03",
-      "afrr_capacity_revenue_pln": 55589.02,
+      "afrr_capacity_revenue_pln": 14258.58,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-04",
-      "afrr_capacity_revenue_pln": 56334.99,
+      "afrr_capacity_revenue_pln": 14449.92,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-05",
-      "afrr_capacity_revenue_pln": 56623.15,
+      "afrr_capacity_revenue_pln": 14523.84,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-06",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-07",
-      "afrr_capacity_revenue_pln": 56199.58,
+      "afrr_capacity_revenue_pln": 14415.19,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-08",
-      "afrr_capacity_revenue_pln": 53839.25,
+      "afrr_capacity_revenue_pln": 13809.77,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-09",
-      "afrr_capacity_revenue_pln": 55272.0,
+      "afrr_capacity_revenue_pln": 14177.27,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-10",
-      "afrr_capacity_revenue_pln": 56037.44,
+      "afrr_capacity_revenue_pln": 14373.6,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-11",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-12",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-13",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-14",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-15",
-      "afrr_capacity_revenue_pln": 56105.39,
+      "afrr_capacity_revenue_pln": 14391.03,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-16",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-17",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-18",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-19",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-20",
-      "afrr_capacity_revenue_pln": 56175.58,
+      "afrr_capacity_revenue_pln": 14409.04,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-21",
-      "afrr_capacity_revenue_pln": 56185.33,
+      "afrr_capacity_revenue_pln": 14411.54,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-22",
-      "afrr_capacity_revenue_pln": 56583.17,
+      "afrr_capacity_revenue_pln": 14513.58,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-23",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-24",
-      "afrr_capacity_revenue_pln": 56039.89,
+      "afrr_capacity_revenue_pln": 14374.23,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-25",
-      "afrr_capacity_revenue_pln": 56404.74,
+      "afrr_capacity_revenue_pln": 14467.82,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-26",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-27",
-      "afrr_capacity_revenue_pln": 55296.45,
+      "afrr_capacity_revenue_pln": 14183.54,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-28",
-      "afrr_capacity_revenue_pln": 55597.85,
+      "afrr_capacity_revenue_pln": 14260.85,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-29",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-30",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 14525.93,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-05-31",
-      "afrr_capacity_revenue_pln": 56377.71,
+      "afrr_capacity_revenue_pln": 14460.88,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-01",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 12911.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-02",
-      "afrr_capacity_revenue_pln": 56406.02,
+      "afrr_capacity_revenue_pln": 12860.57,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-03",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 12911.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-04",
-      "afrr_capacity_revenue_pln": 56472.49,
+      "afrr_capacity_revenue_pln": 12875.73,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-05",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 12911.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-06",
-      "afrr_capacity_revenue_pln": 54856.03,
+      "afrr_capacity_revenue_pln": 12507.18,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-07",
-      "afrr_capacity_revenue_pln": 56425.21,
+      "afrr_capacity_revenue_pln": 12864.95,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-08",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 12911.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-09",
-      "afrr_capacity_revenue_pln": 56583.24,
+      "afrr_capacity_revenue_pln": 12900.98,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-10",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 12911.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-11",
-      "afrr_capacity_revenue_pln": 56405.12,
+      "afrr_capacity_revenue_pln": 12860.37,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-12",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 12911.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-13",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 12911.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-14",
-      "afrr_capacity_revenue_pln": 55523.69,
+      "afrr_capacity_revenue_pln": 12659.4,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-15",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 12911.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-16",
-      "afrr_capacity_revenue_pln": 54981.76,
+      "afrr_capacity_revenue_pln": 12535.84,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-17",
-      "afrr_capacity_revenue_pln": 55987.33,
+      "afrr_capacity_revenue_pln": 12765.11,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-18",
-      "afrr_capacity_revenue_pln": 55029.4,
+      "afrr_capacity_revenue_pln": 12546.7,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-19",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 12911.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-20",
-      "afrr_capacity_revenue_pln": 56409.4,
+      "afrr_capacity_revenue_pln": 12861.34,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-21",
-      "afrr_capacity_revenue_pln": 56070.17,
+      "afrr_capacity_revenue_pln": 12784.0,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-22",
-      "afrr_capacity_revenue_pln": 55690.96,
+      "afrr_capacity_revenue_pln": 12697.54,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-23",
-      "afrr_capacity_revenue_pln": 56322.65,
+      "afrr_capacity_revenue_pln": 12841.56,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-24",
-      "afrr_capacity_revenue_pln": 54078.05,
+      "afrr_capacity_revenue_pln": 12329.8,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-25",
-      "afrr_capacity_revenue_pln": 53766.8,
+      "afrr_capacity_revenue_pln": 12258.83,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-26",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 12911.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-27",
-      "afrr_capacity_revenue_pln": 56631.31,
+      "afrr_capacity_revenue_pln": 12911.94,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-28",
-      "afrr_capacity_revenue_pln": 55944.21,
+      "afrr_capacity_revenue_pln": 12755.28,
       "intervals_count": 96,
       "hours_coverage": 24.0
     },
     {
       "business_date": "2025-06-29",
-      "afrr_capacity_revenue_pln": 47689.57,
+      "afrr_capacity_revenue_pln": 10873.22,
       "intervals_count": 85,
       "hours_coverage": 21.25
     }
