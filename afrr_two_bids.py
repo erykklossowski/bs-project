@@ -409,6 +409,13 @@ def value_afrr_down_two_bids(
     # 5) Fit capacity acceptance probability model
     capacity_model = CapacityLegModel(cap_model, ridge_lambda)
     model_params = capacity_model.fit_capacity_model(df, "price_pln_per_mw_h", pred_cols)
+    model_params_serializable = {
+        "beta_mu": model_params.get("beta_mu").tolist() if "beta_mu" in model_params else [],
+        "sigma": float(model_params.get("sigma", 0.0)),
+        "mu_t_series": model_params.get("mu_t_series", []).tolist() if "mu_t_series" in model_params else [],
+        "used_cols": model_params.get("used_cols", []),
+        "cap_model": model_params.get("cap_model")
+    }
     
     # 6) Compute capacity acceptance probabilities
     p_cap_df = capacity_model.compute_capacity_acceptance_probability(df, K_cap_values)
@@ -455,12 +462,12 @@ def value_afrr_down_two_bids(
         
         # Energy leg summary
         energy_results = {
-            "K_energy": single_K_energy,
+            "K_energy": float(single_K_energy),
             "energy_pay_rule": energy_pay_rule,
-            "theta": theta,
-            "energy_pln_portfolio": energy_revenue_df['energy_revenue'].sum(),
-            "energy_pln_perMW": energy_revenue_df['energy_revenue'].sum() / portfolio_mw if portfolio_mw > 0 else 0,
-            "avg_payoff_per_MWh": energy_payoff.mean()
+            "theta": float(theta),
+            "energy_pln_portfolio": float(energy_revenue_df['energy_revenue'].sum()),
+            "energy_pln_perMW": float(energy_revenue_df['energy_revenue'].sum() / portfolio_mw) if portfolio_mw > 0 else 0.0,
+            "avg_payoff_per_MWh": float(energy_payoff.mean())
         }
     
     # 8) Apply budget envelope and compute totals
@@ -490,11 +497,11 @@ def value_afrr_down_two_bids(
             avg_p_cap = p_cap_df[p_cap_col].mean()
             expected_MWh = (p_cap_df[p_cap_col] * final_df['mw_available'] * 0.25).sum()
             acceptance_stats.append({
-                "band": i + 1,
-                "fraction": v_i,
-                "K_cap": K_cap_i,
-                "avg_acceptance_prob": avg_p_cap,
-                "expected_MWh": expected_MWh
+                "band": int(i + 1),
+                "fraction": float(v_i),
+                "K_cap": float(K_cap_i),
+                "avg_acceptance_prob": float(avg_p_cap),
+                "expected_MWh": float(expected_MWh)
             })
     
     # Calculate additional summary statistics - ensure all values are safe numeric types
@@ -512,7 +519,7 @@ def value_afrr_down_two_bids(
             return default
     
     total_capacity_revenue = safe_float(cap_portfolio_capped)
-    total_energy_revenue = safe_float(energy_results.get('expected_energy_revenue_pln', 0) if energy_results else 0)
+    total_energy_revenue = safe_float(energy_results.get('energy_pln_portfolio', 0) if energy_results else 0)
     per_mw_revenue = safe_float(total_portfolio / portfolio_mw if portfolio_mw > 0 else 0)
     avg_capacity_acceptance = safe_float(np.mean([stat.get('avg_acceptance_prob', 0) for stat in acceptance_stats]) if acceptance_stats else 0)
     bound_intervals_pct = safe_float(100.0 * bound_intervals / total_intervals if total_intervals > 0 else 0)
@@ -521,16 +528,18 @@ def value_afrr_down_two_bids(
     K_energy_value = safe_float(single_K_energy)
     theta_value = safe_float(theta)
     expected_activations = safe_float(total_intervals * theta_value if theta_value else 0)
-    avg_energy_payoff = safe_float(energy_results.get('avg_energy_payoff_per_mwh', 0) if energy_results else 0)
+    avg_energy_payoff = safe_float(energy_results.get('avg_payoff_per_MWh', 0) if energy_results else 0)
     
     # Build results dictionary
+    cap_bands_serializable = [(float(v), float(k)) for v, k in cap_bands]
+
     results = {
         # Model configuration
         "K_cap_values": K_cap_values.tolist(),
-        "cap_bands": cap_bands,
-        "portfolio_mw": portfolio_mw,
+        "cap_bands": cap_bands_serializable,
+        "portfolio_mw": float(portfolio_mw),
         "cap_model": cap_model,
-        "model_params": model_params,
+        "model_params": model_params_serializable,
         
         # Template-expected fields for summary display
         "total_capacity_revenue_pln": total_capacity_revenue,
@@ -578,26 +587,25 @@ def value_afrr_down_two_bids(
     
     # Add interval data if requested
     if return_intervals:
-        results["intervals_df"] = final_df
-        
+        results["intervals"] = final_df.to_dict(orient="records")
+
         # Chart data for visualization
         results["chart_data"] = {
             "dt": final_df["dt"].dt.strftime("%Y-%m-%d %H:%M:%S").tolist(),
             "P_cap": final_df["price_pln_per_mw_h"].tolist(),
-            "Q_proc": final_df["mw_procured"].tolist(), 
+            "Q_proc": final_df["mw_procured"].tolist(),
             "R_cap_baseline": final_df["capacity_revenue_baseline"].tolist(),
             "R_cap_capped": final_df["capacity_revenue_capped"].tolist(),
             "budget_envelope": final_df["budget_envelope"].tolist(),
             "R_total": final_df["total_revenue"].tolist(),
             "bound_flag": final_df["bound_flag"].tolist()
         }
-        
+
         # Add energy data if available
         if "energy_revenue" in final_df.columns:
-            # Handle energy price column properly
             s_bal_data = final_df[col_energy].tolist() if col_energy and col_energy in final_df.columns else [0] * len(final_df)
             p_energy_data = final_df["p_energy"].tolist() if "p_energy" in final_df.columns else [0] * len(final_df)
-            
+
             results["chart_data"].update({
                 "S_bal": s_bal_data,
                 "R_energy": final_df["energy_revenue"].tolist(),

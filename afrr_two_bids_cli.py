@@ -73,7 +73,7 @@ def save_two_bid_outputs(results: dict, out_prefix: str) -> dict:
     try:
         # 1) Summary JSON with all metrics
         summary_file = f"{out_prefix}_summary.json"
-        summary_data = {k: v for k, v in results.items() if k not in ["intervals_df", "chart_data"]}
+        summary_data = {k: v for k, v in results.items() if k not in ["intervals", "intervals_df", "chart_data"]}
         
         # Clean data for JSON serialization
         def clean_for_json(obj):
@@ -96,9 +96,14 @@ def save_two_bid_outputs(results: dict, out_prefix: str) -> dict:
         print(f"Saved summary to: {summary_file}")
         
         # 2) Intervals CSV with detailed breakdown
-        if "intervals_df" in results:
-            intervals_file = f"{out_prefix}_intervals.csv"
+        intervals_df = None
+        if "intervals" in results:
+            intervals_df = pd.DataFrame(results["intervals"])
+        elif "intervals_df" in results:
             intervals_df = results["intervals_df"]
+
+        if intervals_df is not None:
+            intervals_file = f"{out_prefix}_intervals.csv"
             
             # Select key columns for output
             output_cols = ['dt', 'price_pln_per_mw_h', 'mw_procured', 'mw_available']
@@ -126,8 +131,7 @@ def save_two_bid_outputs(results: dict, out_prefix: str) -> dict:
             print(f"Saved intervals data to: {intervals_file}")
         
         # 3) Daily aggregates (if enough data)
-        if "intervals_df" in results:
-            intervals_df = results["intervals_df"]
+        if intervals_df is not None:
             
             if len(intervals_df) > 24:  # More than 6 hours of data
                 intervals_df_copy = intervals_df.copy()
