@@ -99,6 +99,34 @@ async def fetch_pse_data(start_date: str, end_date: str):
         fetch_status = {"status": "error", "progress": 0, "message": f"Error: {str(e)}"}
         raise HTTPException(status_code=500, detail=f"Data fetch failed: {str(e)}")
 
+async def run_data_fetch(start_date: str, end_date: str):
+    """Background task to run data fetching."""
+    global fetch_status
+    
+    try:
+        fetch_status = {"status": "fetching", "progress": 10, "message": "Initializing data fetch..."}
+        
+        # Set up environment for subprocess
+        env = os.environ.copy()
+        env['NODE_PATH'] = env.get('NODE_PATH', '/usr/local/lib/node_modules')
+        
+        # Run the JavaScript downloader
+        fetch_status = {"status": "fetching", "progress": 50, "message": "Downloading PSE data via JavaScript..."}
+        
+        result = subprocess.run([
+            'node', 'energy-prices-downloader.js'
+        ], cwd=Path.cwd(), capture_output=True, text=True, env=env, timeout=300)
+        
+        if result.returncode != 0:
+            print(f"JavaScript downloader failed: {result.stderr}")
+            fetch_status = {"status": "error", "progress": 0, "message": "JavaScript downloader failed"}
+            return
+        
+        fetch_status = {"status": "completed", "progress": 100, "message": "Data download completed successfully!"}
+        
+    except Exception as e:
+        fetch_status = {"status": "error", "progress": 0, "message": f"Data fetch failed: {str(e)}"}
+
 def load_auto_data() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Load PSE data from JavaScript downloader (no synthetics)."""
     js_data_path = Path("pse_data_js")
