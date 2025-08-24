@@ -1,0 +1,27 @@
+{
+  "K": 400.0,
+  "portfolio_mw": 50.0,
+  "price_series_original_interval_h": 0.25,
+  "mode": "both",
+  "exante_sigma": 0.9065351468383073,
+  "exante_beta": {
+    "b0": 4.528300183068638,
+    "b1": 0.0022505290840565757,
+    "b2": -0.00447869995498683,
+    "b3": -0.00047198696896602756,
+    "b4": 0.0010562176419356562,
+    "b5": -0.0002935047484019692
+  },
+  "exante_expected_MWh": 3706.46092190096,
+  "exante_total_PLN_perMW": 4892613.527637125,
+  "expost_expected_MWh": 5586.0,
+  "expost_total_PLN_perMW": 1142479.1124999998,
+  "exante_portfolio_baseline_total_PLN": 244630676.3818562,
+  "exante_portfolio_capped_total_PLN": 135831852.8411034,
+  "exante_share_bound_intervals_%": 19.164949633699635,
+  "exante_avg_scale_factor": 0.9363704991494259,
+  "expost_portfolio_baseline_total_PLN": 57123955.625,
+  "expost_portfolio_capped_total_PLN": 57123955.625,
+  "expost_share_bound_intervals_%": 0.0,
+  "expost_avg_scale_factor": 1.0
+}

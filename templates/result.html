@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"/><title>Results</title>
+<style> body{font-family:system-ui,Arial;margin:24px;max-width:900px} table{border-collapse:collapse} td,th{padding:6px 10px;border:1px solid #ddd} </style>
+</head>
+<body>
+  <h1>Summary</h1>
+  <pre>{{ summary | tojson(indent=2) }}</pre>
+
+  <h2>Downloads</h2>
+  <ul>
+    {% for f in files %}
+      <li><a href="{{ f.path }}">{{ f.name }}</a></li>
+    {% endfor %}
+  </ul>
+
+  <p><a href="/">← back</a></p>
+</body>
+</html>
